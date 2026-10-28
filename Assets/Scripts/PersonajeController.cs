@@ -1,10 +1,11 @@
 using UnityEngine;
+using CalamaCity.Vehiculo;
 
 namespace CalamaCity.Player
 {
     /// <summary>
-    /// Controlador básico del personaje: caminar, correr, saltar.
-    /// Fase 1 del roadmap.
+    /// Controlador básico del personaje: caminar, correr, saltar y ocupar un vehículo.
+    /// La entrada/salida del coche la coordina GestorVehiculo (único dueño de la tecla E).
     /// </summary>
     [RequireComponent(typeof(CharacterController))]
     public class PersonajeController : MonoBehaviour
@@ -20,7 +21,7 @@ namespace CalamaCity.Player
         public float gravedad = -20.0f;
 
         [Header("Vehículo")]
-        [Tooltip("Referencia al vehículo en el que está el personaje (null si anda a pie).")]
+        [Tooltip("Vehículo en el que está el personaje (null si anda a pie).")]
         public VehiculoController vehiculoActual;
         [Tooltip("Posición relativa dentro del vehículo (asiento del conductor).")]
         public Vector3 posicionDentroDelVehiculo = new Vector3(0, 0.8f, 0.5f);
@@ -28,7 +29,8 @@ namespace CalamaCity.Player
         private CharacterController controlador;
         private Vector3 velocidadVertical;
         private bool enSuelo;
-        private bool dentroDelVehiculo;
+
+        public bool dentroDelVehiculo { get; private set; }
 
         void Awake()
         {
@@ -42,14 +44,8 @@ namespace CalamaCity.Player
             // Si está dentro de un vehículo, no procesar movimiento a pie
             if (dentroDelVehiculo && vehiculoActual != null)
             {
-                // Sincronizar posición con el vehículo
                 transform.position = vehiculoActual.transform.TransformPoint(posicionDentroDelVehiculo);
                 transform.rotation = vehiculoActual.transform.rotation;
-
-                // Tecla para salir
-                if (Input.GetKeyDown(KeyCode.E))
-                    SalirDelVehiculo();
-
                 return;
             }
 
@@ -73,54 +69,33 @@ namespace CalamaCity.Player
 
             velocidadVertical.y += gravedad * Time.deltaTime;
             controlador.Move(velocidadVertical * Time.deltaTime);
-
-            // Tecla para entrar en vehículo cercano
-            if (Input.GetKeyDown(KeyCode.E))
-                IntentarEntrarVehiculo();
-        }
-
-        void IntentarEntrarVehiculo()
-        {
-            Collider[] colisiones = Physics.OverlapSphere(transform.position, 3.0f);
-            foreach (var col in colisiones)
-            {
-                var vehiculo = col.GetComponentInParent<VehiculoController>();
-                if (vehiculo != null)
-                {
-                    EntrarVehiculo(vehiculo);
-                    return;
-                }
-            }
         }
 
         public void EntrarVehiculo(VehiculoController vehiculo)
         {
             dentroDelVehiculo = true;
             vehiculoActual = vehiculo;
-            controlador.enabled = false; // Desactivar CharacterController mientras está en el coche
+            velocidadVertical = Vector3.zero;
+            controlador.enabled = false;
 
-            // Posicionar dentro del vehículo
             transform.position = vehiculo.transform.TransformPoint(posicionDentroDelVehiculo);
             transform.rotation = vehiculo.transform.rotation;
-
-            Debug.Log("Entraste al vehículo. Presiona E para salir.");
         }
 
         public void SalirDelVehiculo()
         {
             dentroDelVehiculo = false;
-            controlador.enabled = true;
 
-            // Posicionar al lado del vehículo
             if (vehiculoActual != null)
             {
-                Vector3 salida = vehiculoActual.transform.position + Vector3.right * 2.5f;
-                transform.position = salida;
+                Transform salida = vehiculoActual.GetPuntoSalida();
+                transform.position = salida.position;
                 transform.rotation = vehiculoActual.transform.rotation;
                 vehiculoActual = null;
             }
 
-            Debug.Log("Saliste del vehículo.");
+            velocidadVertical = Vector3.zero;
+            controlador.enabled = true;
         }
     }
 }

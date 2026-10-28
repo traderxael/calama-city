@@ -1,16 +1,17 @@
 using UnityEngine;
+using CalamaCity.Camaras;
+using CalamaCity.Vehiculo;
 
 namespace CalamaCity.Player
 {
     /// <summary>
-    /// Gestiona entrar y salir de vehículos, y el cambio de control entre personaje y coche.
-    /// Fase 2 del roadmap.
+    /// Coordina entrar y salir de vehículos. Es el único dueño de la tecla E.
     /// </summary>
     public class GestorVehiculo : MonoBehaviour
     {
         [Header("Referencias")]
-        [Tooltip("Cámara en tercera persona del personaje.")]
-        public Camera camaraPersonaje;
+        [Tooltip("Cámara en tercera persona que cambia de objetivo.")]
+        public CamaraTerceraPersona camara;
         [Tooltip("Distancia máxima para detectar un vehículo cercano.")]
         public float distanciaMaximaEntrada = 4.0f;
 
@@ -25,14 +26,13 @@ namespace CalamaCity.Player
         void Update()
         {
             if (personaje == null) return;
+            if (Time.timeScale == 0f) return;
+            if (!Input.GetKeyDown(KeyCode.E)) return;
 
-            if (Input.GetKeyDown(KeyCode.E))
-            {
-                if (!personaje.dentroDelVehiculo)
-                    IntentarEntrar();
-                else
-                    SalirDelVehiculo();
-            }
+            if (!personaje.dentroDelVehiculo)
+                IntentarEntrar();
+            else
+                SalirDelVehiculo();
         }
 
         void IntentarEntrar()
@@ -41,42 +41,28 @@ namespace CalamaCity.Player
             foreach (var col in colisiones)
             {
                 var vehiculo = col.GetComponentInParent<VehiculoController>();
-                if (vehiculo != null)
-                {
-                    EntrarVehiculo(vehiculo);
-                    return;
-                }
+                if (vehiculo == null) continue;
+
+                vehiculo.Activar();
+                personaje.EntrarVehiculo(vehiculo);
+                vehiculoCercano = vehiculo;
+
+                if (camara != null)
+                    camara.Seguir(vehiculo.transform);
+                return;
             }
-        }
-
-        void EntrarVehiculo(VehiculoController vehiculo)
-        {
-            // Desactivar cámaras del personaje
-            if (camaraPersonaje != null)
-                camaraPersonaje.gameObject.SetActive(false);
-
-            // Activar vehículo
-            vehiculo.Activar();
-
-            // Delegar al personaje
-            personaje.EntrarVehiculo(vehiculo);
-            vehiculoCercano = vehiculo;
         }
 
         void SalirDelVehiculo()
         {
             if (vehiculoCercano == null) return;
 
-            // Desactivar vehículo
             vehiculoCercano.Desactivar();
-
-            // Reactivar cámaras del personaje
-            if (camaraPersonaje != null)
-                camaraPersonaje.gameObject.SetActive(true);
-
-            // Delegar al personaje
             personaje.SalirDelVehiculo();
             vehiculoCercano = null;
+
+            if (camara != null)
+                camara.Seguir(personaje.transform);
         }
     }
 }

@@ -1,10 +1,10 @@
 using UnityEngine;
+using CalamaCity.Player;
 
 namespace CalamaCity.Core
 {
     /// <summary>
-    /// Gestor principal del juego: inicializa sistemas y coordina estado global.
-    /// Fase 2 del roadmap.
+    /// Gestor principal del juego: estado global y pausa.
     /// </summary>
     public class GameManager : MonoBehaviour
     {
@@ -12,11 +12,12 @@ namespace CalamaCity.Core
 
         [Header("Referencias")]
         public PersonajeController personaje;
-        public Camera camaraPersonaje;
-        public Camera camaraVehiculo;
 
-        [Header("Estado")]
+        [Header("Pausa")]
+        public GameObject panelPausa;
+
         public bool enVehiculo => personaje != null && personaje.dentroDelVehiculo;
+        public bool EstaPausado => Time.timeScale == 0f;
 
         void Awake()
         {
@@ -26,27 +27,33 @@ namespace CalamaCity.Core
                 return;
             }
             Instance = this;
-            DontDestroyOnLoad(gameObject);
         }
 
         void Start()
         {
             if (personaje == null)
-                personaje = FindFirstObjectByType<PersonajeController>();
+                personaje = FindAnyObjectByType<PersonajeController>();
 
-            if (camaraPersonaje == null)
-                camaraPersonaje = Camera.main;
+            Time.timeScale = 1f;
+            if (panelPausa != null)
+                panelPausa.SetActive(false);
 
-            Debug.Log("Calama City iniciado. Fase 2: Conducción y entrada/salida de vehículo.");
+            Debug.Log("Calama City iniciado. Fase 6: MVP jugable.");
         }
 
         void Update()
         {
             if (Input.GetKeyDown(KeyCode.Escape))
-            {
-                // Pausa simple
-                Time.timeScale = Time.timeScale == 0 ? 1 : 0;
-            }
+                AlternarPausa();
+        }
+
+        public void AlternarPausa()
+        {
+            bool pausar = Time.timeScale > 0f;
+            Time.timeScale = pausar ? 0f : 1f;
+
+            if (panelPausa != null)
+                panelPausa.SetActive(pausar);
         }
     }
 }

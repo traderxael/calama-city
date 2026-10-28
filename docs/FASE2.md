@@ -13,18 +13,10 @@
 ## Cómo probar
 
 1. Abrir Unity Hub → Add project → `C:/Users/USUARIO/Calama City` con Unity **6000.6.5f1**.
-2. Crear una escena nueva (File → New Scene) o abrir `MainMenu.unity`.
-3. Crear un GameObject vacío llamado `Jugador` y agregar:
-   - `CharacterController`
-   - `PersonajeController`
-   - `GestorVehiculo`
-   - `GameManager` (opcional, para singleton)
-4. Crear un GameObject vacío llamado `Coche` y agregar:
-   - `GeneradorCocheSimple` (para generar el coche paramétrico)
-   - O asignar un modelo 3D real si tienes uno
-5. Arrastrar la cámara principal al campo `Camara Personaje` del `GestorVehiculo`.
-6. Crear una segunda cámara para el vehículo, asignarla al `Camara Vehiculo` del `VehiculoController`.
-7. Dar Play. Usa `WASD` para caminar, `E` para entrar al coche, `WASD` para conducir, `E` para salir.
+2. Abrir `Assets/Scenes/CalamaCity.unity` y darle Play. La escena se construye por código desde Fase 6; si falta, usar el menú **Calama City → Reconstruir escena jugable**.
+3. Usa `WASD` para caminar, `E` para entrar al coche, `WASD` para conducir, `E` para salir.
+
+> Nota histórica: hasta la Fase 5 este setup era manual (crear cámara, jugador y coche a mano). Desde la Fase 6 todo lo arma `ArranqueCalamaCity`.
 
 ## Controles
 

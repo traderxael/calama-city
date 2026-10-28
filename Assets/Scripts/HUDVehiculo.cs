@@ -1,11 +1,12 @@
 using UnityEngine;
 using UnityEngine.UI;
+using CalamaCity.Vehiculo;
 
 namespace CalamaCity.UI
 {
     /// <summary>
     /// Velocímetro y barra de vida mostrados en la pantalla.
-    /// Fase 4 del roadmap.
+    /// El velocímetro solo aparece cuando el jugador conduce.
     /// </summary>
     public class HUDVehiculo : MonoBehaviour
     {
@@ -25,32 +26,24 @@ namespace CalamaCity.UI
 
         void Update()
         {
-            // Actualizar velocímetro
-            if (textoVelocidad != null && vehiculo != null)
+            if (textoVelocidad != null)
             {
-                float velocidadKmh = vehiculo.ObtenerVelocidadKmh();
-                textoVelocidad.text = $"{(int)velocidadKmh} KM/H";
+                bool conduciendo = vehiculo != null && vehiculo.Activo;
+                textoVelocidad.enabled = conduciendo;
+
+                if (conduciendo)
+                    textoVelocidad.text = $"{(int)vehiculo.ObtenerVelocidadKmh()} KM/H";
             }
 
-            // Actualizar barra de vida
             if (barraVida != null)
-            {
-                float vidaNormalizada = vidaJugador / 100f;
-                barraVida.fillAmount = Mathf.Clamp01(vidaNormalizada);
-            }
+                barraVida.fillAmount = Mathf.Clamp01(vidaJugador / 100f);
         }
 
-        /// <summary>
-        /// Reduce la vida del jugador (llamado por sistema de daño).
-        /// </summary>
         public void RecibirDaño(float cantidad)
         {
             vidaJugador = Mathf.Max(0, vidaJugador - cantidad);
         }
 
-        /// <summary>
-        /// Cura la vida del jugador.
-        /// </summary>
         public void Curar(float cantidad)
         {
             vidaJugador = Mathf.Min(100, vidaJugador + cantidad);

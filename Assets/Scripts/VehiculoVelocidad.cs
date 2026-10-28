@@ -7,14 +7,15 @@ namespace CalamaCity.Vehiculo
     /// </summary>
     public partial class VehiculoController
     {
-        /// <summary>
-        /// Devuelve la velocidad actual en km/h (aproximada).
-        /// </summary>
         public float ObtenerVelocidadKmh()
         {
             if (rb == null) return 0f;
-            // Convertir unidades/segundo a km/h aproximado (factor arbitrario para juego)
-            return rb.velocity.magnitude * 18f;
+            return ConvertirAKmh(rb.linearVelocity.magnitude);
+        }
+
+        public static float ConvertirAKmh(float metrosPorSegundo)
+        {
+            return metrosPorSegundo * 3.6f;
         }
     }
 }

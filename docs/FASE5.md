@@ -30,15 +30,14 @@ Generar el ejecutable (.exe) de Calama City para Windows, listo para distribuir 
 
 ### Paso 2: Configurar Build Settings
 
-1. Abrir la escena principal: `Assets/Scenes/MainMenu.unity` (o la escena que quieras como punto de inicio)
+1. Abrir la escena principal: `Assets/Scenes/CalamaCity.unity`
 2. Ir a **File → Build Settings**
 3. En la plataforma, seleccionar **PC, Mac & Linux Standalone**
 4. Clic en **Switch Platform** (esperar a que termine la importación)
 5. Configurar:
    - **Target Platform:** Windows
    - **Architecture:** x86_64
-   - **Scripting Backend:** IL2CPP (recomendado para mejor rendimiento)
-   - **C++ Compiler:** Clang
+   - **Scripting Backend:** Mono (por defecto) o IL2CPP si el módulo está instalado
    - **Compression:** LZ4 (equilibrio entre tamaño y velocidad)
 
 ### Paso 3: Configurar Player Settings
@@ -60,24 +59,29 @@ Generar el ejecutable (.exe) de Calama City para Windows, listo para distribuir 
 
 ### Paso 5: Verificar el build
 
-1. Ir a `C:/Users/USUARIO/Calama City/Builds/CalamaCity/`
+1. Ir a `C:/Users/USUARIO/Calama City/Builds/Windows/`
 2. Deberías ver:
-   - `Calama City.exe` (el ejecutable principal)
-   - `Calama City_Data/` (carpeta con assets y dependencias)
+   - `CalamaCity.exe` (el ejecutable principal)
+   - `CalamaCity_Data/` (carpeta con assets y dependencias)
    - `UnityCrashHandler64.exe` (manejador de errores)
-3. Doble clic en `Calama City.exe` para probar el juego
+3. Doble clic en `CalamaCity.exe` para probar el juego
 
 ---
 
-## 📜 Script de build automático (opcional)
+## 📜 Build automático por CLI
 
-He incluido un script de PowerShell que puedes ejecutar desde Unity o desde línea de comandos para automatizar futuros builds:
+```bash
+"C:/Program Files/Unity/Hub/Editor/6000.6.5f1/Editor/Unity.exe" -batchmode \
+  -projectPath "C:/Users/USUARIO/Calama City" \
+  -buildWindows64Player "C:/Users/USUARIO/Calama City/Builds/Windows/CalamaCity.exe" -quit
+```
 
-**Archivo:** `Tools/BuildWindows.ps1`
+La escena jugable se crea con:
 
-```powershell
-# Ejecutar desde Unity Hub o línea de comandos
-# unity.exe -batchmode -projectPath "C:/Users/USUARIO/Calama City" -executeMethod CalamaCity.BuildScript.BuildWindows -quit
+```bash
+"C:/Program Files/Unity/Hub/Editor/6000.6.5f1/Editor/Unity.exe" -batchmode -nographics \
+  -projectPath "C:/Users/USUARIO/Calama City" \
+  -executeMethod ConstructorEscenaCalamaCity.ConstruirDesdeCLI -quit
 ```
 
 ---

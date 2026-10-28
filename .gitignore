@@ -10,6 +10,12 @@
 [Bb]uild/
 [Ee]xportedObj/
 [Cc]onsoles/
+[Ll]ogs/
+TestResults/
+UserSettings/
+*.slnx
+*.backup
+*.backup.meta
 
 # Visual Studio / VS Code
 .vs/

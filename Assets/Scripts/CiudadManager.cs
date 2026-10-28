@@ -1,11 +1,11 @@
 using UnityEngine;
+using CalamaCity.Ciudad;
 
 namespace CalamaCity.Core
 {
     /// <summary>
     /// Coordinador del escenario de Calama City.
-    /// Instancia los generadores de ciudad: calles, edificios y plaza.
-    /// Fase 3 del roadmap.
+    /// Instancia los generadores en orden y con semilla fija para una ciudad reproducible.
     /// </summary>
     public class CiudadManager : MonoBehaviour
     {
@@ -13,11 +13,12 @@ namespace CalamaCity.Core
 
         [Header("Generadores")]
         public GeneradorCalles generadorCalles;
-        public GeneradorEdificios generadorEdificios;
+        public GeneradorEdificios[] generadoresEdificios;
         public GeneradorPlaza23DeMarzo generadorPlaza;
 
         [Header("Configuración")]
         public bool generarAlIniciar = true;
+        public int semilla = 20261028;
 
         void Awake()
         {
@@ -27,21 +28,28 @@ namespace CalamaCity.Core
                 return;
             }
             Instance = this;
-            DontDestroyOnLoad(gameObject);
         }
 
         void Start()
         {
             if (!generarAlIniciar) return;
 
+            Random.InitState(semilla);
+
             if (generadorPlaza != null)
-                generadorPlaza.enabled = true;
+                generadorPlaza.GenerarTodo();
 
             if (generadorCalles != null)
-                generadorCalles.enabled = true;
+                generadorCalles.GenerarTodo();
 
-            if (generadorEdificios != null)
-                generadorEdificios.enabled = true;
+            if (generadoresEdificios != null)
+            {
+                foreach (GeneradorEdificios generador in generadoresEdificios)
+                {
+                    if (generador != null)
+                        generador.GenerarTodo();
+                }
+            }
 
             Debug.Log("Calama City - CiudadManager: escenario generado.");
         }

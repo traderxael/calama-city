@@ -1,11 +1,10 @@
 using UnityEngine;
+using CalamaCity.Core;
 
 namespace CalamaCity.Ciudad
 {
     /// <summary>
-    /// Genera la Plaza 23 de Marzo de Calama como punto central de la ciudad.
-    /// Incluye área abierta, banco central, farolas y señalética.
-    /// Fase 3 del roadmap.
+    /// Genera la Plaza 23 de Marzo de Calama: área abierta, monumento central y farolas.
     /// </summary>
     public class GeneradorPlaza23DeMarzo : MonoBehaviour
     {
@@ -27,8 +26,21 @@ namespace CalamaCity.Ciudad
         public Color colorFarola = new Color(0.2f, 0.2f, 0.2f);
         public Color colorLuzFarola = new Color(1f, 0.95f, 0.8f);
 
+        [Header("Generación")]
+        public bool autoGenerar = true;
+
+        private bool generado;
+
         void Start()
         {
+            if (autoGenerar) GenerarTodo();
+        }
+
+        public void GenerarTodo()
+        {
+            if (generado) return;
+            generado = true;
+
             GenerarSueloPlaza();
             if (generarMonumento) GenerarMonumentoCentral();
             GenerarFarolas();
@@ -38,109 +50,75 @@ namespace CalamaCity.Ciudad
         {
             GameObject suelo = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             suelo.name = "SueloPlaza23DeMarzo";
-            suelo.transform.parent = transform;
+            suelo.transform.SetParent(transform, false);
             suelo.transform.localScale = new Vector3(radioPlaza * 2f, grosorSuelo, radioPlaza * 2f);
-            suelo.transform.position = Vector3.zero;
+            suelo.transform.localPosition = new Vector3(0, -grosorSuelo + 0.01f, 0);
 
-            Material mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
-            mat.color = colorSueloPlaza;
-            suelo.GetComponent<Renderer>().material = mat;
+            Renderer renderer = suelo.GetComponent<Renderer>();
+            if (renderer != null)
+                renderer.sharedMaterial = Materiales.Crear(colorSueloPlaza);
 
-            Collider col = suelo.GetComponent<Collider>();
-            if (col != null)
-#if UNITY_EDITOR
-                UnityEditor.Undo.DestroyObjectImmediate(col);
-#else
-                DestroyImmediate(col);
-#endif
-
-            suelo.tag = "Plaza";
+            // El cilindro primitivo trae CapsuleCollider (no es un disco plano): se reemplaza por una caja.
+            Utilidades.Destruir(suelo.GetComponent<Collider>());
+            BoxCollider collider = suelo.AddComponent<BoxCollider>();
+            collider.size = new Vector3(1f, 2f, 1f);
         }
 
         void GenerarMonumentoCentral()
         {
             GameObject monumento = new GameObject("MonumentoCentral");
-            monumento.transform.parent = transform;
-            monumento.transform.position = Vector3.up * (alturaMonumento / 2f);
+            monumento.transform.SetParent(transform, false);
+            monumento.transform.localPosition = Vector3.zero;
 
-            // Base
-            CrearCubo("Base", Vector3.zero, new Vector3(6f, 1f, 6f), colorMonumento, monumento.transform);
+            CrearCubo("Base", new Vector3(0, 0.5f, 0), new Vector3(6f, 1f, 6f), colorMonumento, monumento.transform);
+            CrearCubo("Obelisco", new Vector3(0, 1f + (alturaMonumento - 1f) / 2f, 0),
+                new Vector3(2f, alturaMonumento - 1f, 2f), colorMonumento, monumento.transform);
 
-            // Obelisco
-            CrearCubo("Obelisco", new Vector3(0, alturaMonumento / 2f, 0), new Vector3(2f, alturaMonumento, 2f), colorMonumento, monumento.transform);
-
-            // Collider
-            BoxCollider bc = monumento.AddComponent<BoxCollider>();
-            bc.size = new Vector3(6f, alturaMonumento, 6f);
-
-            monumento.tag = "Monumento";
+            BoxCollider collider = monumento.AddComponent<BoxCollider>();
+            collider.center = new Vector3(0, alturaMonumento / 2f, 0);
+            collider.size = new Vector3(6f, alturaMonumento, 6f);
         }
 
         void GenerarFarolas()
         {
             GameObject contenedorFarolas = new GameObject("Farolas");
-            contenedorFarolas.transform.parent = transform;
+            contenedorFarolas.transform.SetParent(transform, false);
 
             for (int i = 0; i < numFarolas; i++)
             {
                 float angulo = i * (360f / numFarolas) * Mathf.Deg2Rad;
-                float x = Mathf.Cos(angulo) * (radioPlaza - 5f);
-                float z = Mathf.Sin(angulo) * (radioPlaza - 5f);
-                Vector3 posicion = new Vector3(x, 0, z);
+                Vector3 posicion = new Vector3(
+                    Mathf.Cos(angulo) * (radioPlaza - 5f),
+                    0,
+                    Mathf.Sin(angulo) * (radioPlaza - 5f));
 
                 GameObject farola = new GameObject($"Farola_{i}");
-                farola.transform.parent = contenedorFarolas.transform;
-                farola.transform.position = posicion;
+                farola.transform.SetParent(contenedorFarolas.transform, false);
+                farola.transform.localPosition = posicion;
+                farola.transform.LookAt(transform.position);
 
-                // Mirar hacia el centro
-                farola.transform.LookAt(Vector3.zero);
-
-                // Poste
-                CrearCubo("Poste", new Vector3(0, alturaFarola / 2f, 0), new Vector3(0.2f, alturaFarola, 0.2f), colorFarola, farola.transform);
-
-                // Brazo
-                CrearCubo("Brazo", new Vector3(0, alturaFarola - 0.5f, 1f), new Vector3(2f, 0.2f, 0.2f), colorFarola, farola.transform);
-
-                // Luz
-                GameObject luzGO = new GameObject("Luz");
-                luzGO.transform.parent = farola.transform;
-                luzGO.transform.localPosition = new Vector3(2f, alturaFarola - 0.5f, 0);
-                Luz luz = luzGO.AddComponent<Luz>();
-                luz.color = colorLuzFarola;
-                luz.intensidad = 2f;
-
-                farola.tag = "Farola";
+                CrearCubo("Poste", new Vector3(0, alturaFarola / 2f, 0),
+                    new Vector3(0.2f, alturaFarola, 0.2f), colorFarola, farola.transform);
+                CrearCubo("Brazo", new Vector3(0, alturaFarola - 0.5f, 1f),
+                    new Vector3(0.2f, 0.2f, 2f), colorFarola, farola.transform);
+                CrearCubo("Luz", new Vector3(0, alturaFarola - 0.7f, 2f),
+                    new Vector3(0.5f, 0.3f, 0.5f), colorLuzFarola, farola.transform, true);
             }
         }
 
-        void CrearCubo(string nombre, Vector3 posicionLocal, Vector3 escala, Color color, Transform padre)
+        void CrearCubo(string nombre, Vector3 posicionLocal, Vector3 escala, Color color, Transform padre, bool emisivo = false)
         {
             GameObject cubo = GameObject.CreatePrimitive(PrimitiveType.Cube);
             cubo.name = nombre;
-            cubo.transform.parent = padre;
+            cubo.transform.SetParent(padre, false);
             cubo.transform.localPosition = posicionLocal;
             cubo.transform.localScale = escala;
 
-            Material mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
-            mat.color = color;
-            cubo.GetComponent<Renderer>().material = mat;
+            Renderer renderer = cubo.GetComponent<Renderer>();
+            if (renderer != null)
+                renderer.sharedMaterial = Materiales.Crear(color, emisivo);
 
-            Collider col = cubo.GetComponent<Collider>();
-            if (col != null)
-#if UNITY_EDITOR
-                UnityEditor.Undo.DestroyObjectImmediate(col);
-#else
-                DestroyImmediate(col);
-#endif
+            Utilidades.Destruir(cubo.GetComponent<Collider>());
         }
-    }
-
-    /// <summary>
-    /// Componente simple de luz para farolas (sin depender de sistemas complejos).
-    /// </summary>
-    public class Luz : MonoBehaviour
-    {
-        public Color color = Color.white;
-        public float intensidad = 1f;
     }
 }

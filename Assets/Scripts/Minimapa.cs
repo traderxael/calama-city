@@ -4,25 +4,24 @@ using UnityEngine.UI;
 namespace CalamaCity.UI
 {
     /// <summary>
-    /// Minimapa simple que muestra la posición del jugador y vehículos cercanos.
-    /// Fase 4 del roadmap.
+    /// Minimapa simple que muestra la posición del jugador.
     /// </summary>
     public class Minimapa : MonoBehaviour
     {
         [Header("Referencias")]
-        [Tooltip="Imagen que sirve como fondo del minimapa.")]
+        [Tooltip("Imagen que sirve como fondo del minimapa.")]
         public Image fondoMinimapa;
-        [Tooltip="Icono que representa al jugador.")]
+        [Tooltip("Icono que representa al jugador.")]
         public Image iconoJugador;
-        [Tooltip="Transform del jugador a seguir.")]
+        [Tooltip("Transform del jugador a seguir.")]
         public Transform jugador;
-        [Tooltip="Radio del área mostrada en el minimapa (unidades de juego).")]
+        [Tooltip("Radio del área mostrada en el minimapa (unidades de juego).")]
         public float radioVista = 100f;
 
         [Header("Configuración")]
-        [Tooltip="Tamaño del minimapa en píxeles.")]
+        [Tooltip("Tamaño del minimapa en píxeles.")]
         public float tamañoPantalla = 200f;
-        [Tooltip="Actualizar rotación del icono según la dirección del jugador.")]
+        [Tooltip("Actualizar rotación del icono según la dirección del jugador.")]
         public bool rotarIcono = true;
 
         RectTransform rectTransform;
@@ -38,25 +37,22 @@ namespace CalamaCity.UI
         {
             if (jugador == null || iconoJugador == null) return;
 
-            // Calcular posición relativa del jugador en el minimapa
-            Vector3 posicionJugador = jugador.position;
-            float xNormalizado = posicionJugador.x / radioVista;
-            float zNormalizado = posicionJugador.z / radioVista;
+            iconoJugador.rectTransform.anchoredPosition = CalcularPosicion(jugador.position, radioVista, tamañoPantalla);
 
-            // Limitar al radio de vista
-            xNormalizado = Mathf.Clamp(xNormalizado, -1f, 1f);
-            zNormalizado = Mathf.Clamp(zNormalizado, -1f, 1f);
-
-            // Posicionar en el canvas del minimapa
-            Vector2 posicionMinimapa = new Vector2(xNormalizado, zNormalizado) * (tamañoPantalla / 2f);
-            iconoJugador.rectTransform.anchoredPosition = posicionMinimapa;
-
-            // Rotar icono según dirección del jugador
             if (rotarIcono)
             {
                 float angulo = Mathf.Atan2(jugador.forward.x, jugador.forward.z) * Mathf.Rad2Deg;
                 iconoJugador.rectTransform.localRotation = Quaternion.Euler(0, 0, -angulo);
             }
+        }
+
+        public static Vector2 CalcularPosicion(Vector3 posicion, float radio, float tamaño)
+        {
+            if (radio <= 0f) radio = 1f;
+
+            float x = Mathf.Clamp(posicion.x / radio, -1f, 1f);
+            float z = Mathf.Clamp(posicion.z / radio, -1f, 1f);
+            return new Vector2(x, z) * (tamaño / 2f);
         }
     }
 }

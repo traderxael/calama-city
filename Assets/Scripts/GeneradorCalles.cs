@@ -1,10 +1,10 @@
 using UnityEngine;
+using CalamaCity.Core;
 
 namespace CalamaCity.Ciudad
 {
     /// <summary>
     /// Genera calles y aceras paramétricas para el centro de Calama.
-    /// Fase 3 del roadmap.
     /// </summary>
     public class GeneradorCalles : MonoBehaviour
     {
@@ -22,8 +22,21 @@ namespace CalamaCity.Ciudad
         public Color colorAceras = new Color(0.7f, 0.7f, 0.7f);
         public Color colorLineaCentral = new Color(1f, 1f, 1f);
 
+        [Header("Generación")]
+        public bool autoGenerar = true;
+
+        private bool generado;
+
         void Start()
         {
+            if (autoGenerar) GenerarTodo();
+        }
+
+        public void GenerarTodo()
+        {
+            if (generado) return;
+            generado = true;
+
             GenerarCallePrincipal();
             GenerarAceras();
             GenerarLineasViales();
@@ -32,66 +45,53 @@ namespace CalamaCity.Ciudad
         void GenerarCallePrincipal()
         {
             GameObject calle = new GameObject("CallePrincipal");
-            calle.transform.parent = transform;
+            calle.transform.SetParent(transform, false);
 
-            CrearCubo("Asfalto", Vector3.zero, new Vector3(anchoCalle, grosorAsfalto, largoCalle), colorAsfalto, calle.transform);
-
-            // Collider para la calle (los coches no caen)
-            BoxCollider bc = calle.AddComponent<BoxCollider>();
-            bc.size = new Vector3(anchoCalle, grosorAsfalto * 2f, largoCalle);
-            bc.isTrigger = true;
-
-            calle.tag = "Calle";
+            float alturaAsfalto = -grosorAsfalto / 2f + 0.02f;
+            CrearCubo("Asfalto", new Vector3(0, alturaAsfalto, 0),
+                new Vector3(anchoCalle, grosorAsfalto, largoCalle), colorAsfalto, calle.transform, true);
         }
 
         void GenerarAceras()
         {
             GameObject aceras = new GameObject("Aceras");
-            aceras.transform.parent = transform;
+            aceras.transform.SetParent(transform, false);
 
-            // Acerada izquierda
-            CrearCubo("AceradaIzquierda", new Vector3(-(anchoCalle / 2f + anchoAceras / 2f), 0, 0),
-                new Vector3(anchoAceras, grosorAceras, largoCalle), colorAceras, aceras.transform);
+            CrearCubo("AceraIzquierda", new Vector3(-(anchoCalle / 2f + anchoAceras / 2f), 0, 0),
+                new Vector3(anchoAceras, grosorAceras, largoCalle), colorAceras, aceras.transform, true);
 
-            // Acerada derecha
-            CrearCubo("AceradaDerecha", new Vector3(anchoCalle / 2f + anchoAceras / 2f, 0, 0),
-                new Vector3(anchoAceras, grosorAceras, largoCalle), colorAceras, aceras.transform);
+            CrearCubo("AceraDerecha", new Vector3(anchoCalle / 2f + anchoAceras / 2f, 0, 0),
+                new Vector3(anchoAceras, grosorAceras, largoCalle), colorAceras, aceras.transform, true);
         }
 
         void GenerarLineasViales()
         {
             GameObject lineas = new GameObject("LineasViales");
-            lineas.transform.parent = transform;
+            lineas.transform.SetParent(transform, false);
 
-            // Línea central divisoria
             int numLineas = Mathf.FloorToInt(largoCalle / 6f);
             for (int i = 0; i < numLineas; i++)
             {
                 float zPos = -largoCalle / 2f + i * 6f + 3f;
-                CrearCubo($"LineaCentral_{i}", new Vector3(0, grosorAsfalto + 0.01f, zPos),
-                    new Vector3(0.3f, 0.02f, 3f), colorLineaCentral, lineas.transform);
+                CrearCubo($"LineaCentral_{i}", new Vector3(0, 0.04f, zPos),
+                    new Vector3(0.3f, 0.02f, 3f), colorLineaCentral, lineas.transform, false);
             }
         }
 
-        void CrearCubo(string nombre, Vector3 posicionLocal, Vector3 escala, Color color, Transform padre)
+        void CrearCubo(string nombre, Vector3 posicionLocal, Vector3 escala, Color color, Transform padre, bool conCollider)
         {
             GameObject cubo = GameObject.CreatePrimitive(PrimitiveType.Cube);
             cubo.name = nombre;
-            cubo.transform.parent = padre;
+            cubo.transform.SetParent(padre, false);
             cubo.transform.localPosition = posicionLocal;
             cubo.transform.localScale = escala;
 
-            Material mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
-            mat.color = color;
-            cubo.GetComponent<Renderer>().material = mat;
+            Renderer renderer = cubo.GetComponent<Renderer>();
+            if (renderer != null)
+                renderer.sharedMaterial = Materiales.Crear(color);
 
-            Collider col = cubo.GetComponent<Collider>();
-            if (col != null)
-#if UNITY_EDITOR
-                UnityEditor.Undo.DestroyObjectImmediate(col);
-#else
-                DestroyImmediate(col);
-#endif
+            if (!conCollider)
+                Utilidades.Destruir(cubo.GetComponent<Collider>());
         }
     }
 }

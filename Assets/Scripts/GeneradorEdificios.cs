@@ -1,10 +1,10 @@
 using UnityEngine;
+using CalamaCity.Core;
 
 namespace CalamaCity.Ciudad
 {
     /// <summary>
-    /// Genera una manzana de edificios paramétricos alrededor de una calle.
-    /// Fase 3 del roadmap: escenario de Calama.
+    /// Genera manzanas de edificios paramétricos alrededor de una calle.
     /// </summary>
     public class GeneradorEdificios : MonoBehaviour
     {
@@ -12,7 +12,6 @@ namespace CalamaCity.Ciudad
         public int edificiosEnX = 3;
         public int edificiosEnZ = 3;
         public float separacionEdificios = 6f;
-        public float anchoAvenida = 12f;
 
         [Header("Dimensiones de cada edificio")]
         public float anchoMin = 8f;
@@ -28,23 +27,36 @@ namespace CalamaCity.Ciudad
         public Color colorTecho = new Color(0.4f, 0.35f, 0.3f);
         public Color colorVentana = new Color(0.3f, 0.5f, 0.7f, 0.6f);
 
+        [Header("Generación")]
+        public bool autoGenerar = true;
+
+        private bool generado;
+
         void Start()
         {
+            if (autoGenerar) GenerarTodo();
+        }
+
+        public void GenerarTodo()
+        {
+            if (generado) return;
+            generado = true;
+
             GenerarManzana();
         }
 
         void GenerarManzana()
         {
+            float pasoX = anchoMax + separacionEdificios;
+            float pasoZ = largoMax + separacionEdificios;
+            float offsetX = (edificiosEnX - 1) * pasoX / 2f;
+            float offsetZ = (edificiosEnZ - 1) * pasoZ / 2f;
+
             for (int x = 0; x < edificiosEnX; x++)
             {
                 for (int z = 0; z < edificiosEnZ; z++)
                 {
-                    Vector3 posicion = new Vector3(
-                        x * (anchoMax + separacionEdificios),
-                        0,
-                        z * (largoMax + separacionEdificios)
-                    );
-
+                    Vector3 posicion = new Vector3(x * pasoX - offsetX, 0, z * pasoZ - offsetZ);
                     GenerarEdificio(posicion);
                 }
             }
@@ -58,24 +70,19 @@ namespace CalamaCity.Ciudad
             float alturaTotal = pisos * pisoAltura;
 
             GameObject edificio = new GameObject("Edificio");
-            edificio.transform.parent = transform;
-            edificio.transform.position = posicionBase;
+            edificio.transform.SetParent(transform, false);
+            edificio.transform.localPosition = posicionBase;
 
-            // Paredes principales
             CrearCubo("ParedFrente", new Vector3(0, alturaTotal / 2f, largo / 2f), new Vector3(ancho, alturaTotal, 0.2f), colorPared, edificio.transform);
             CrearCubo("ParedAtras", new Vector3(0, alturaTotal / 2f, -largo / 2f), new Vector3(ancho, alturaTotal, 0.2f), colorPared, edificio.transform);
             CrearCubo("ParedIzq", new Vector3(-ancho / 2f, alturaTotal / 2f, 0), new Vector3(0.2f, alturaTotal, largo), colorPared, edificio.transform);
             CrearCubo("ParedDer", new Vector3(ancho / 2f, alturaTotal / 2f, 0), new Vector3(0.2f, alturaTotal, largo), colorPared, edificio.transform);
-
-            // Techo
             CrearCubo("Techo", new Vector3(0, alturaTotal + 0.5f, 0), new Vector3(ancho + 1f, 1f, largo + 1f), colorTecho, edificio.transform);
 
-            // Ventanas en cada piso
             for (int p = 1; p <= pisos; p++)
             {
                 float yPiso = p * pisoAltura - pisoAltura / 2f;
 
-                // Ventanas frente y atrás
                 int ventanasFrente = Mathf.Max(2, Mathf.FloorToInt(ancho / 3f));
                 for (int v = 0; v < ventanasFrente; v++)
                 {
@@ -84,7 +91,6 @@ namespace CalamaCity.Ciudad
                     CrearCubo($"VentanaAtras_{p}_{v}", new Vector3(xV, yPiso, -largo / 2f - 0.11f), new Vector3(1.5f, 1.5f, 0.1f), colorVentana, edificio.transform);
                 }
 
-                // Ventanas lados
                 int ventanasLado = Mathf.Max(2, Mathf.FloorToInt(largo / 3f));
                 for (int v = 0; v < ventanasLado; v++)
                 {
@@ -94,32 +100,24 @@ namespace CalamaCity.Ciudad
                 }
             }
 
-            // Collider del edificio
-            BoxCollider bc = edificio.AddComponent<BoxCollider>();
-            bc.size = new Vector3(ancho + 2f, alturaTotal + 1f, largo + 2f);
-
-            edificio.tag = "Edificio";
+            BoxCollider collider = edificio.AddComponent<BoxCollider>();
+            collider.center = new Vector3(0, alturaTotal / 2f, 0);
+            collider.size = new Vector3(ancho, alturaTotal, largo);
         }
 
         void CrearCubo(string nombre, Vector3 posicionLocal, Vector3 escala, Color color, Transform padre)
         {
             GameObject cubo = GameObject.CreatePrimitive(PrimitiveType.Cube);
             cubo.name = nombre;
-            cubo.transform.parent = padre;
+            cubo.transform.SetParent(padre, false);
             cubo.transform.localPosition = posicionLocal;
             cubo.transform.localScale = escala;
 
-            Material mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
-            mat.color = color;
-            cubo.GetComponent<Renderer>().material = mat;
+            Renderer renderer = cubo.GetComponent<Renderer>();
+            if (renderer != null)
+                renderer.sharedMaterial = Materiales.Crear(color);
 
-            Collider col = cubo.GetComponent<Collider>();
-            if (col != null)
-#if UNITY_EDITOR
-                UnityEditor.Undo.DestroyObjectImmediate(col);
-#else
-                DestroyImmediate(col);
-#endif
+            Utilidades.Destruir(cubo.GetComponent<Collider>());
         }
     }
 }
