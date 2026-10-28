@@ -71,7 +71,7 @@ namespace CalamaCity.Tests
         }
 
         [Test]
-        public void Coche_TieneUnSoloRigidbodyColliderYEjeLargoEnZ()
+        public void Coche_TieneCuatroWheelCollidersYChasisElevado()
         {
             GameObject go = Nuevo("CocheTest");
             GeneradorCocheSimple generador = go.AddComponent<GeneradorCocheSimple>();
@@ -79,14 +79,42 @@ namespace CalamaCity.Tests
             generador.Generar();
             generador.Generar();
 
-            Assert.IsNotNull(go.GetComponent<VehiculoController>(), "Falta VehiculoController.");
+            VehiculoController controlador = go.GetComponent<VehiculoController>();
+            Assert.IsNotNull(controlador, "Falta VehiculoController.");
             Assert.AreEqual(1, go.GetComponents<Rigidbody>().Length, "Debe haber un único Rigidbody.");
             Assert.AreEqual(1, go.GetComponents<BoxCollider>().Length, "Debe haber un único BoxCollider raíz.");
+            Assert.AreEqual(4, go.GetComponentsInChildren<WheelCollider>().Length, "Deben existir 4 WheelColliders.");
+
+            Assert.IsNotNull(controlador.ruedaDelIzq);
+            Assert.IsNotNull(controlador.ruedaDelDer);
+            Assert.IsNotNull(controlador.ruedaTraIzq);
+            Assert.IsNotNull(controlador.ruedaTraDer);
+            Assert.IsNotNull(controlador.visualDelIzq);
+            Assert.IsNotNull(controlador.visualDelDer);
+            Assert.IsNotNull(controlador.visualTraIzq);
+            Assert.IsNotNull(controlador.visualTraDer);
+
+            Assert.AreEqual(0.45f, controlador.ruedaDelIzq.radius, 0.001f);
+            Assert.Greater(controlador.ruedaDelIzq.suspensionDistance, 0f, "La suspensión debe tener recorrido.");
 
             BoxCollider collider = go.GetComponent<BoxCollider>();
             Assert.Greater(collider.size.z, collider.size.x, "El eje largo del coche debe ser Z (morro +Z).");
-            Assert.IsNotNull(go.GetComponent<VehiculoController>().puntoSalida, "Falta el punto de salida.");
+            Assert.Greater(collider.center.y - collider.size.y / 2f, 0f, "El chasis no debe tocar el suelo.");
+            Assert.IsNotNull(controlador.puntoSalida, "Falta el punto de salida.");
             Assert.IsNotNull(go.transform.Find("Chasis"), "No se generó el chasis.");
+        }
+
+        [Test]
+        public void Direccion_ReduceAnguloAlAumentarVelocidad()
+        {
+            float lento = VehiculoController.CalcularAnguloGiro(1f, 0f, 32f, 22f, 0.55f);
+            float rapido = VehiculoController.CalcularAnguloGiro(1f, 22f, 32f, 22f, 0.55f);
+            float sinEntrada = VehiculoController.CalcularAnguloGiro(0f, 10f, 32f, 22f, 0.55f);
+
+            Assert.AreEqual(32f, lento, 0.01f);
+            Assert.Less(rapido, lento, "El ángulo debe reducirse a alta velocidad.");
+            Assert.AreEqual(32f * 0.45f, rapido, 0.01f);
+            Assert.AreEqual(0f, sinEntrada, 0.001f);
         }
 
         [Test]

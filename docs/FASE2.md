@@ -5,8 +5,8 @@
 | Script | Qué hace |
 |--------|----------|
 | `PersonajeController.cs` | Ahora puede entrar/salir de vehículos. Cuando está dentro, se sincroniza con el coche y el CharacterController se desactiva. |
-| `VehiculoController.cs` | Conducción física completa. Activa/desactiva cámaras según quién controle. Incluye `puntoSalida` para posicionar al personaje al salir. |
-| `GestorVehiculo.cs` | Coordina entrar/salir entre personaje y vehículo. Genciona activación/desactivación de cámaras. |
+| `VehiculoController.cs` | Conducción con 4 `WheelCollider`: suspensión, dirección, torque trasero y freno de mano. Incluye `puntoSalida` para posicionar al personaje al salir. |
+| `GestorVehiculo.cs` | Coordina entrar/salir (única tecla `E`) y re-apunta la cámara al coche o al jugador. |
 | `GeneradorCocheSimple.cs` | Genera un coche paramétrico (cubos + cilindros) para pruebas sin necesidad de modelos 3D externos. |
 | `GameManager.cs` | Gestor principal del juego, singleton, maneja pausa con `ESC`. |
 

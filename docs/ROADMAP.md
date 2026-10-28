@@ -35,17 +35,16 @@ Cada feature sigue:
 - [x] Escena jugable generada por código y registrada en Build Settings
 - [x] Personaje: caminar/correr/saltar
 - [x] Cámara en tercera persona que cambia de objetivo
-- [x] Coche con física básica, freno de mano y agarre lateral
+- [x] Coche con `WheelCollider` (suspensión, dirección, torque y freno de mano)
 - [x] Entrar y salir del coche (tecla `E`, un único responsable)
 - [x] Escenario: Plaza 23 de Marzo + calle + manzanas procedurales
 - [x] UI: velocímetro, barra de vida, minimapa, ayuda y pausa
-- [x] Tests EditMode y build de Windows por CLI
+- [x] Tests EditMode y PlayMode (asentado y avance del coche) + build de Windows por CLI
 
 ---
 
 ## Próximas fases (v1.1+)
 
-- [ ] Conducción con `WheelCollider` (suspensión, dirección y frenos reales)
 - [ ] Peatones y tráfico con `com.unity.ai.navigation` (NavMeshSurface + NavMeshAgent)
 - [ ] Audio: motor ligado a RPM + ambiente urbano
 - [ ] Guardado de partida (PlayerPrefs/JSON)

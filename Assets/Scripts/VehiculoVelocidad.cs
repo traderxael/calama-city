@@ -10,7 +10,9 @@ namespace CalamaCity.Vehiculo
         public float ObtenerVelocidadKmh()
         {
             if (rb == null) return 0f;
-            return ConvertirAKmh(rb.linearVelocity.magnitude);
+
+            Vector3 velocidad = rb.linearVelocity;
+            return ConvertirAKmh(new Vector2(velocidad.x, velocidad.z).magnitude);
         }
 
         public static float ConvertirAKmh(float metrosPorSegundo)

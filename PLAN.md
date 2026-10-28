@@ -3,7 +3,7 @@
 > **Revision 2026-10-28** — reescrito tras el ciclo `autoresearch-goal` (ver `docs/RESEARCH-LOG.md`).
 > Correccion critica: el proyecto **no usa URP** (usa **Built-in RP**) y **no tiene ninguna escena**, por lo que hoy no es jugable.
 >
-> **Estado 2026-10-28 (Fase 6 implementada)** — P0 0.1/0.2/0.3 completados: compilacion limpia, escena `Assets/Scenes/CalamaCity.unity` registrada en Build Settings y documentacion corregida. Tambien se completaron los tests EditMode (P1) y el pulido de HUD, minimapa y conduccion. Siguen pendientes: `WheelCollider`, NPC/NavMesh, audio y guardado. Ver `README.md` y `docs/ROADMAP.md`.
+> **Estado 2026-10-28 (Fase 6 implementada)** — P0 0.1/0.2/0.3 completados: compilacion limpia, escena `Assets/Scenes/CalamaCity.unity` registrada en Build Settings y documentacion corregida. Tambien se completaron los tests EditMode y PlayMode, el pulido de HUD/minimapa y la conduccion con `WheelCollider` (P1). Siguen pendientes: NPC/NavMesh, audio y guardado. Ver `README.md` y `docs/ROADMAP.md`.
 
 ## P0 — Bloqueantes (sin esto no hay juego ni build)
 | # | Tarea | Criterio de aceptacion |

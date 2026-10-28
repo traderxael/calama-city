@@ -14,7 +14,7 @@ Arte: **paramétrico y generado por código** (sin assets de terceros con derech
 | Sistema | Qué hace |
 |---------|----------|
 | Personaje | Camina, corre, salta, entra y sale de vehículos |
-| Vehículo | Conducción física básica (acelerar, frenar, girar, reversa, freno de mano) |
+| Vehículo | Conducción con `WheelCollider`: suspensión, dirección, torque trasero, freno de mano y barras estabilizadoras |
 | Cámara | Tercera persona que sigue al jugador y cambia de objetivo al coche |
 | Ciudad | Plaza 23 de Marzo + calle principal + manzanas de edificios procedurales |
 | UI | Velocímetro, barra de vida, minimapa, ayuda de controles y pausa |

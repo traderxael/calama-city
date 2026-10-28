@@ -4,7 +4,7 @@ using CalamaCity.Core;
 namespace CalamaCity.Vehiculo
 {
     /// <summary>
-    /// Genera un coche paramétrico simple (cubos y cilindros) sin modelos 3D externos.
+    /// Genera un coche paramétrico simple (cubos y cilindros) con cuatro WheelColliders.
     /// El morro apunta a +Z, igual que transform.forward.
     /// </summary>
     public class GeneradorCocheSimple : MonoBehaviour
@@ -23,6 +23,9 @@ namespace CalamaCity.Vehiculo
         [Header("Ruedas")]
         public float radioRueda = 0.45f;
         public float anchoRueda = 0.3f;
+
+        [Header("Física")]
+        public float masaCoche = 1200f;
 
         void Awake()
         {
@@ -49,32 +52,56 @@ namespace CalamaCity.Vehiculo
 
             float xRueda = ancho / 2f;
             float zRueda = largo * 0.32f;
-            CrearRueda("Rueda_Del_Der", new Vector3(xRueda, radioRueda, zRueda));
-            CrearRueda("Rueda_Del_Izq", new Vector3(-xRueda, radioRueda, zRueda));
-            CrearRueda("Rueda_Tra_Der", new Vector3(xRueda, radioRueda, -zRueda));
-            CrearRueda("Rueda_Tra_Izq", new Vector3(-xRueda, radioRueda, -zRueda));
+
+            Transform visualDelDer = CrearRueda("Rueda_Del_Der", new Vector3(xRueda, radioRueda, zRueda));
+            Transform visualDelIzq = CrearRueda("Rueda_Del_Izq", new Vector3(-xRueda, radioRueda, zRueda));
+            Transform visualTraDer = CrearRueda("Rueda_Tra_Der", new Vector3(xRueda, radioRueda, -zRueda));
+            Transform visualTraIzq = CrearRueda("Rueda_Tra_Izq", new Vector3(-xRueda, radioRueda, -zRueda));
 
             GameObject puntoSalidaGO = new GameObject("PuntoSalida");
             puntoSalidaGO.transform.SetParent(transform, false);
             puntoSalidaGO.transform.localPosition = new Vector3(ancho / 2f + 1.2f, 0.2f, 0f);
 
-            if (GetComponent<Rigidbody>() == null)
-            {
-                Rigidbody rb = gameObject.AddComponent<Rigidbody>();
-                rb.mass = 1200f;
-            }
+            Rigidbody rb = GetComponent<Rigidbody>();
+            if (rb == null)
+                rb = gameObject.AddComponent<Rigidbody>();
 
-            if (GetComponent<BoxCollider>() == null)
-            {
-                BoxCollider collider = gameObject.AddComponent<BoxCollider>();
-                collider.center = new Vector3(0, alto / 2f, 0);
-                collider.size = new Vector3(ancho, alto, largo);
-            }
+            rb.mass = masaCoche;
+            rb.linearDamping = 0.02f;
+            rb.angularDamping = 0.4f;
+            rb.freezeRotation = false;
+
+            // Collider del chasis elevado: el contacto con el suelo es de las ruedas.
+            BoxCollider collider = GetComponent<BoxCollider>();
+            if (collider == null)
+                collider = gameObject.AddComponent<BoxCollider>();
+
+            collider.center = new Vector3(0f, alto / 2f + 0.1f, 0f);
+            collider.size = new Vector3(ancho, alto - 0.2f, largo);
 
             VehiculoController controlador = GetComponent<VehiculoController>();
             if (controlador == null)
                 controlador = gameObject.AddComponent<VehiculoController>();
+
+            controlador.radioRueda = radioRueda;
+
+            float ySuspension = radioRueda + controlador.distanciaSuspension * controlador.posicionObjetivoSuspension;
+
+            WheelCollider wcDelDer = CrearWheelCollider("WC_Del_Der", new Vector3(xRueda, ySuspension, zRueda));
+            WheelCollider wcDelIzq = CrearWheelCollider("WC_Del_Izq", new Vector3(-xRueda, ySuspension, zRueda));
+            WheelCollider wcTraDer = CrearWheelCollider("WC_Tra_Der", new Vector3(xRueda, ySuspension, -zRueda));
+            WheelCollider wcTraIzq = CrearWheelCollider("WC_Tra_Izq", new Vector3(-xRueda, ySuspension, -zRueda));
+
+            controlador.ruedaDelDer = wcDelDer;
+            controlador.ruedaDelIzq = wcDelIzq;
+            controlador.ruedaTraDer = wcTraDer;
+            controlador.ruedaTraIzq = wcTraIzq;
+            controlador.visualDelDer = visualDelDer;
+            controlador.visualDelIzq = visualDelIzq;
+            controlador.visualTraDer = visualTraDer;
+            controlador.visualTraIzq = visualTraIzq;
             controlador.puntoSalida = puntoSalidaGO.transform;
+            controlador.ConfigurarRuedas();
         }
 
         void CrearCubo(string nombre, Vector3 posicion, Vector3 escala, Color color)
@@ -92,7 +119,7 @@ namespace CalamaCity.Vehiculo
             Utilidades.Destruir(cubo.GetComponent<Collider>());
         }
 
-        void CrearRueda(string nombre, Vector3 posicion)
+        Transform CrearRueda(string nombre, Vector3 posicion)
         {
             GameObject rueda = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             rueda.name = nombre;
@@ -106,6 +133,18 @@ namespace CalamaCity.Vehiculo
                 renderer.sharedMaterial = Materiales.Crear(colorRuedas);
 
             Utilidades.Destruir(rueda.GetComponent<Collider>());
+            return rueda.transform;
+        }
+
+        WheelCollider CrearWheelCollider(string nombre, Vector3 posicion)
+        {
+            GameObject rueda = new GameObject(nombre);
+            rueda.transform.SetParent(transform, false);
+            rueda.transform.localPosition = posicion;
+
+            WheelCollider collider = rueda.AddComponent<WheelCollider>();
+            collider.radius = radioRueda;
+            return collider;
         }
     }
 }

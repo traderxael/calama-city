@@ -35,6 +35,11 @@ UNITY="C:/Program Files/Unity/Hub/Editor/6000.6.5f1/Editor/Unity.exe"
 "$UNITY" -batchmode -projectPath . -runTests -testPlatform EditMode \
   -testResults TestResults/editmode.xml
 
+# Tests PlayMode (física del coche)
+"C:/Program Files/Unity/Hub/Editor/6000.6.5f1/Editor/Unity.exe" -batchmode \
+  -projectPath "C:/Users/USUARIO/Calama City" -runTests -testPlatform PlayMode \
+  -testResults "C:/Users/USUARIO/Calama City/TestResults/playmode.xml"
+
 # Build de Windows
 "$UNITY" -batchmode -projectPath . \
   -buildWindows64Player Builds/Windows/CalamaCity.exe -quit
@@ -45,11 +50,11 @@ UNITY="C:/Program Files/Unity/Hub/Editor/6000.6.5f1/Editor/Unity.exe"
 - Compilación limpia y proyecto en Built-in RP (los materiales se crean con el shader Standard).
 - Escena jugable generada por código, con colisiones de suelo, calle y edificios.
 - Personaje con caminar/correr/saltar y entrada/salida de coche.
-- Conducción con límite de velocidad, freno de mano y agarre lateral.
+- Conducción con **WheelCollider**: suspensión, dirección sensible a la velocidad, torque trasero, freno de mano y barras estabilizadoras.
 - HUD: velocímetro, vida, minimapa, ayuda de controles y pausa.
-- Tests EditMode y build de Windows reproducibles por CLI.
+- Tests EditMode y PlayMode (física del coche) y build de Windows reproducibles por CLI.
 
-Pendiente para próximas fases: conducción con `WheelCollider`, peatones/tráfico con NavMesh, audio y guardado de partida.
+Pendiente para próximas fases: peatones/tráfico con NavMesh, audio y guardado de partida.
 
 ## Documentación
 
