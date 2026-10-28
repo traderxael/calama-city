@@ -36,9 +36,8 @@ UNITY="C:/Program Files/Unity/Hub/Editor/6000.6.5f1/Editor/Unity.exe"
   -testResults TestResults/editmode.xml
 
 # Tests PlayMode (física del coche)
-"C:/Program Files/Unity/Hub/Editor/6000.6.5f1/Editor/Unity.exe" -batchmode \
-  -projectPath "C:/Users/USUARIO/Calama City" -runTests -testPlatform PlayMode \
-  -testResults "C:/Users/USUARIO/Calama City/TestResults/playmode.xml"
+"$UNITY" -batchmode -projectPath . -runTests -testPlatform PlayMode \
+  -testResults TestResults/playmode.xml
 
 # Build de Windows
 "$UNITY" -batchmode -projectPath . \
