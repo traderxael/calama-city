@@ -1,0 +1,50 @@
+# Unity .gitignore
+
+# Unity generated
+[Tt]emp/
+[Oo]bj/
+[Bb]in/
+[Ll]ibrary/
+[Aa]ppData/
+[Bb]uilds/
+[Bb]uild/
+[Ee]xportedObj/
+[Cc]onsoles/
+
+# Visual Studio / VS Code
+.vs/
+*.csproj
+*.sln
+*.userprefs
+*.user
+*.pidb
+*.booproj
+*.svd
+
+# OS generated
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Build artifacts
+*.exe
+*.app
+*.apk
+*.xcodeproj/
+
+# Unity specific
+*.mdb
+*.mono
+*.mdb.meta
+*.mono.meta
+*.pidb.meta
+*.svd.meta
+*.userprefs.meta
+*.user.meta
+
+# Local asset files
+*.meta.meta
