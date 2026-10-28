@@ -20,11 +20,11 @@ Cada feature sigue:
 
 | Fase | Objetivo | Estado |
 |------|----------|--------|
-| 1 | Proyecto Unity vacío, personaje caminando, cámara básica | ⏳ Pendiente |
-| 2 | Vehículo enterable, conducción, entrar/salir del coche | ⏳ Pendiente |
-| 3 | Escenario: Plaza 23 de Marzo + calles del centro | ⏳ Pendiente |
-| 4 | UI: velocímetro, vida, minimapa | ⏳ Pendiente |
-| 5 | Build Windows, prueba y ajuste | ⏳ Pendiente |
+| 1 | Proyecto Unity vacío, personaje caminando, cámara básica | ✅ Completada |
+| 2 | Vehículo enterable, conducción, entrar/salir del coche | ✅ Completada |
+| 3 | Escenario: Plaza 23 de Marzo + calles del centro | ✅ Completada |
+| 4 | UI: velocímetro, vida, minimapa | ✅ Completada |
+| 5 | Build de Windows (exe) | 📋 Documentación lista |
 
 ---
 
