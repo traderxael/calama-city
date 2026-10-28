@@ -12,7 +12,7 @@
 
 ## Cómo probar
 
-1. Abrir Unity Hub → Add project → `C:/Users/USUARIO/Calama City` con Unity **6000.6.5f1**.
+1. Abrir Unity Hub → Add project → `<ruta-del-proyecto>` con Unity **6000.6.5f1**.
 2. Abrir `Assets/Scenes/CalamaCity.unity` y darle Play. La escena se construye por código desde Fase 6; si falta, usar el menú **Calama City → Reconstruir escena jugable**.
 3. Usa `WASD` para caminar, `E` para entrar al coche, `WASD` para conducir, `E` para salir.
 

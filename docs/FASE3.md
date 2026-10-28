@@ -11,7 +11,7 @@
 
 ## Cómo probar
 
-1. **Unity Hub** → Add project → `C:/Users/USUARIO/Calama City` con Unity **6000.6.5f1**.
+1. **Unity Hub** → Add project → `<ruta-del-proyecto>` con Unity **6000.6.5f1**.
 2. **Crear escena nueva** (File → New Scene).
 3. **Crear GameObject `Ciudad`** y agregar:
    - `CiudadManager`

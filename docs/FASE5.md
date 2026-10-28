@@ -24,7 +24,7 @@ Generar el ejecutable (.exe) de Calama City para Windows, listo para distribuir 
 
 1. Abrir **Unity Hub**
 2. Clic en **Add**
-3. Seleccionar la carpeta: `C:/Users/USUARIO/Calama City`
+3. Seleccionar la carpeta: `<ruta-del-proyecto>`
 4. Seleccionar la versión **6000.6.5f1**
 5. Clic en **Add Project**
 
@@ -59,7 +59,7 @@ Generar el ejecutable (.exe) de Calama City para Windows, listo para distribuir 
 
 ### Paso 5: Verificar el build
 
-1. Ir a `C:/Users/USUARIO/Calama City/Builds/Windows/`
+1. Ir a `<ruta-del-proyecto>/Builds/Windows/`
 2. Deberías ver:
    - `CalamaCity.exe` (el ejecutable principal)
    - `CalamaCity_Data/` (carpeta con assets y dependencias)
@@ -72,15 +72,15 @@ Generar el ejecutable (.exe) de Calama City para Windows, listo para distribuir 
 
 ```bash
 "C:/Program Files/Unity/Hub/Editor/6000.6.5f1/Editor/Unity.exe" -batchmode \
-  -projectPath "C:/Users/USUARIO/Calama City" \
-  -buildWindows64Player "C:/Users/USUARIO/Calama City/Builds/Windows/CalamaCity.exe" -quit
+  -projectPath "<ruta-del-proyecto>" \
+  -buildWindows64Player "<ruta-del-proyecto>/Builds/Windows/CalamaCity.exe" -quit
 ```
 
 La escena jugable se crea con:
 
 ```bash
 "C:/Program Files/Unity/Hub/Editor/6000.6.5f1/Editor/Unity.exe" -batchmode -nographics \
-  -projectPath "C:/Users/USUARIO/Calama City" \
+  -projectPath "<ruta-del-proyecto>" \
   -executeMethod ConstructorEscenaCalamaCity.ConstruirDesdeCLI -quit
 ```
 

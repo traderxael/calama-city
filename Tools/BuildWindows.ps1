@@ -1,57 +1,15 @@
-# Build Script — Calama City (Windows)
+param(
+    [string]$Unity = "C:\Program Files\Unity\Hub\Editor\6000.6.5f1\Editor\Unity.exe",
+    [string]$Out = "Builds\Windows\CalamaCity.exe"
+)
 
-Script para automatizar el build de Windows desde línea de comandos.
+$root = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
+$outPath = Join-Path $root $Out
 
-## Uso
-
-Desde PowerShell, dentro de la carpeta del proyecto:
-
-```powershell
-# Ejecutar Unity en modo batch para hacer el build
-"C:\Program Files\Unity\Hub\Editor\6000.6.5f1\Editor\Unity.exe" `
-  -batchmode `
-  -projectPath "C:/Users/USUARIO/Calama City" `
-  -executeMethod CalamaCity.BuildScript.BuildWindows `
-  -quit
-```
-
-## Script de Unity (opcional)
-
-Para usar el executeMethod, crear este archivo en `Assets/Editor/BuildScript.cs`:
-
-```csharp
-using UnityEditor;
-using UnityEditor.Build.Reporting;
-
-namespace CalamaCity.BuildScript
-{
-    public static class BuildWindows
-    {
-        public static void PerformBuild()
-        {
-            string[] scenes = { "Assets/Scenes/MainMenu.unity" };
-            string buildPath = "Builds/CalamaCity";
-
-            BuildPlayerOptions options = new BuildPlayerOptions
-            {
-                scenes = scenes,
-                locationPathName = buildPath,
-                target = BuildTarget.StandaloneWindows64,
-                options = BuildOptions.None
-            };
-
-            BuildReport report = BuildPipeline.BuildPlayer(options);
-            BuildSummary summary = report.summary;
-
-            if (summary.result == BuildResult.Success)
-            {
-                UnityEngine.Debug.Log($"Build exitoso: {buildPath} ({summary.totalSize} bytes)");
-            }
-            else
-            {
-                UnityEngine.Debug.LogError($"Build falló: {summary.totalErrors} errores");
-            }
-        }
-    }
+if (-not (Test-Path $Unity)) {
+    Write-Error "No se encontro Unity en '$Unity'. Pasa -Unity con la ruta correcta."
+    exit 1
 }
-```
+
+& $Unity -batchmode -projectPath $root -buildWindows64Player $outPath -quit
+exit $LASTEXITCODE

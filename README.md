@@ -28,15 +28,16 @@ La escena solo contiene un GameObject con `ArranqueCalamaCity`. Al iniciar, ese 
 ## Verificación
 
 ```bash
+# Ajusta UNITY a tu instalación de Unity 6000.6.5f1
+UNITY="C:/Program Files/Unity/Hub/Editor/6000.6.5f1/Editor/Unity.exe"
+
 # Tests EditMode
-"C:/Program Files/Unity/Hub/Editor/6000.6.5f1/Editor/Unity.exe" -batchmode \
-  -projectPath "C:/Users/USUARIO/Calama City" -runTests -testPlatform EditMode \
-  -testResults "C:/Users/USUARIO/Calama City/TestResults/editmode.xml"
+"$UNITY" -batchmode -projectPath . -runTests -testPlatform EditMode \
+  -testResults TestResults/editmode.xml
 
 # Build de Windows
-"C:/Program Files/Unity/Hub/Editor/6000.6.5f1/Editor/Unity.exe" -batchmode \
-  -projectPath "C:/Users/USUARIO/Calama City" \
-  -buildWindows64Player "C:/Users/USUARIO/Calama City/Builds/Windows/CalamaCity.exe" -quit
+"$UNITY" -batchmode -projectPath . \
+  -buildWindows64Player Builds/Windows/CalamaCity.exe -quit
 ```
 
 ## Estado actual (Fase 6)
