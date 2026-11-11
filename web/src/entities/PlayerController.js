@@ -1,7 +1,40 @@
+import * as BufferGeometryUtils from '../../vendor/BufferGeometryUtils.js';
+
 /**
  * Personaje 3D articulado en tercera persona con animación procedural de caminata/carrera,
  * salto, sombra de contacto y entrada/salida segura de vehículos.
  */
+
+const CHAR_MATS = new WeakMap();
+function getCharMats(THREE) {
+  let m = CHAR_MATS.get(THREE);
+  if (!m) {
+    m = {
+      lit: new THREE.MeshLambertMaterial({ vertexColors: true }),
+      shadow: new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.28, depthWrite: false }),
+    };
+    CHAR_MATS.set(THREE, m);
+  }
+  return m;
+}
+
+function tintedBox(THREE, w, h, d, hex, tx = 0, ty = 0, tz = 0) {
+  const g = new THREE.BoxGeometry(w, h, d).toNonIndexed();
+  g.translate(tx, ty, tz);
+  for (const attr of Object.keys(g.attributes)) {
+    if (attr !== 'position' && attr !== 'normal') g.deleteAttribute(attr);
+  }
+  const c = new THREE.Color(hex);
+  const n = g.attributes.position.count;
+  const colors = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) {
+    colors[i * 3] = c.r;
+    colors[i * 3 + 1] = c.g;
+    colors[i * 3 + 2] = c.b;
+  }
+  g.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  return g;
+}
 
 export class PlayerController {
   constructor(THREE, opts = {}) {
@@ -35,62 +68,44 @@ export class PlayerController {
   static createCharacterMesh(THREE, jacketHex = 0xd4622a) {
     const root = new THREE.Group();
     root.name = 'JugadorCalama';
+    const mats = getCharMats(THREE);
 
-    const mSkin = new THREE.MeshLambertMaterial({ color: 0xd9a17c });
-    const mHair = new THREE.MeshLambertMaterial({ color: 0x221c18 });
-    const mJacket = new THREE.MeshLambertMaterial({ color: jacketHex });
-    const mPants = new THREE.MeshLambertMaterial({ color: 0x28374a });
-    const mShoes = new THREE.MeshLambertMaterial({ color: 0x3b2b20 });
-    const mShadow = new THREE.MeshBasicMaterial({
-      color: 0x000000,
-      transparent: true,
-      opacity: 0.28,
-      depthWrite: false,
-    });
-
-    // Sombra de contacto suave en el suelo (cero coste de shadow map)
     const shadowGeo = new THREE.CircleGeometry(0.46, 12);
     shadowGeo.rotateX(-Math.PI * 0.5);
-    const shadowBlob = new THREE.Mesh(shadowGeo, mShadow);
+    const shadowBlob = new THREE.Mesh(shadowGeo, mats.shadow);
     shadowBlob.position.y = 0.03;
     root.add(shadowBlob);
 
-    // Torso
-    const torso = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.66, 0.28), mJacket);
-    torso.position.set(0, 1.13, 0);
-    root.add(torso);
+    // Torso + cabeza + gorra fusionados en 1 sola malla
+    const bodyMerged = BufferGeometryUtils.mergeGeometries([
+      tintedBox(THREE, 0.52, 0.66, 0.28, jacketHex, 0, 1.13, 0),
+      tintedBox(THREE, 0.34, 0.34, 0.34, 0xd9a17c, 0, 1.66, 0),
+      tintedBox(THREE, 0.36, 0.12, 0.38, 0x221c18, 0, 1.82, -0.02),
+    ], false);
+    root.add(new THREE.Mesh(bodyMerged, mats.lit));
 
-    // Cabeza + gorra/cabello
-    const head = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.34, 0.34), mSkin);
-    head.position.set(0, 1.66, 0);
-    root.add(head);
+    const legGeo = BufferGeometryUtils.mergeGeometries([
+      tintedBox(THREE, 0.20, 0.68, 0.22, 0x28374a, 0, -0.34, 0),
+      tintedBox(THREE, 0.21, 0.14, 0.30, 0x3b2b20, 0, -0.73, -0.04),
+    ], false);
 
-    const hair = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.12, 0.38), mHair);
-    hair.position.set(0, 1.82, -0.02);
-    root.add(hair);
+    const armGeo = BufferGeometryUtils.mergeGeometries([
+      tintedBox(THREE, 0.16, 0.54, 0.18, jacketHex, 0, -0.25, 0),
+      tintedBox(THREE, 0.14, 0.14, 0.14, 0xd9a17c, 0, -0.55, 0),
+    ], false);
 
-    // Piernas articuladas desde la cadera (y = 0.80)
     const makeLeg = (offsetX) => {
       const pivot = new THREE.Group();
       pivot.position.set(offsetX, 0.80, 0);
-      const leg = new THREE.Mesh(new THREE.BoxGeometry(0.20, 0.68, 0.22), mPants);
-      leg.position.set(0, -0.34, 0);
-      const shoe = new THREE.Mesh(new THREE.BoxGeometry(0.21, 0.14, 0.30), mShoes);
-      shoe.position.set(0, -0.73, -0.04); // mira hacia -Z local
-      pivot.add(leg, shoe);
+      pivot.add(new THREE.Mesh(legGeo, mats.lit));
       root.add(pivot);
       return pivot;
     };
 
-    // Brazos articulados desde el hombro (y = 1.42)
     const makeArm = (offsetX) => {
       const pivot = new THREE.Group();
       pivot.position.set(offsetX, 1.42, 0);
-      const sleeve = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.54, 0.18), mJacket);
-      sleeve.position.set(0, -0.25, 0);
-      const hand = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.14, 0.14), mSkin);
-      hand.position.set(0, -0.55, 0);
-      pivot.add(sleeve, hand);
+      pivot.add(new THREE.Mesh(armGeo, mats.lit));
       root.add(pivot);
       return pivot;
     };

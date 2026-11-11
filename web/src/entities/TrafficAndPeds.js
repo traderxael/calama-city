@@ -223,9 +223,11 @@ export class TrafficAndPeds {
         w.spinPivot.rotation.x -= (ai.speed * dt) / w.radius;
       }
 
-      // Reciclar autos muy lejanos para mantener vida constante alrededor del jugador
-      if (Math.hypot(veh.x - focusX, veh.z - focusZ) > 275 && this.edges.length > 8) {
-        const resp = this._pickSpawnEdge(focusX, focusZ, 105, 210, i * 13 + Math.floor(timeSec));
+      // Reciclar autos muy lejanos y ocultar más allá de 145m para cuidar draw calls en GT 640
+      const carDist = Math.hypot(veh.x - focusX, veh.z - focusZ);
+      veh.mesh.visible = carDist <= 145;
+      if (carDist > 265 && this.edges.length > 8) {
+        const resp = this._pickSpawnEdge(focusX, focusZ, 105, 195, i * 13 + Math.floor(timeSec));
         if (resp) {
           ai.fromNode = resp.u;
           ai.toNode = resp.v;
@@ -259,8 +261,10 @@ export class TrafficAndPeds {
         p.z = nz;
       }
 
-      // Si se aleja más de 175 m del jugador, reubicar en el anillo alrededor del jugador
-      if (Math.hypot(p.x - focusX, p.z - focusZ) > 180) {
+      // Ocultar más allá de 95m y reubicar si se aleja > 165m para cuidar draw calls en GT 640
+      const pedDist = Math.hypot(p.x - focusX, p.z - focusZ);
+      p.mesh.visible = pedDist <= 95;
+      if (pedDist > 165) {
         const a = (i * 2.1 + timeSec * 0.3) % (Math.PI * 2);
         let rx = focusX + Math.cos(a) * 85;
         let rz = focusZ + Math.sin(a) * 85;

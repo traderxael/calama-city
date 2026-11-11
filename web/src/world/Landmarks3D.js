@@ -100,33 +100,33 @@ export function createCatedral3D(THREE) {
   const mStainedGlass = new THREE.MeshBasicMaterial({ color: 0x2f6398 });
   const mGold = new THREE.MeshLambertMaterial({ color: 0xd4af37 });
 
-  // Zócalo de piedra sillar (base y=[0..2.2])
-  g.add(box(THREE, 20, 2.2, 34, mStone, 0, 1.1, 0));
+  // Zócalo de piedra sillar ajustado exactamente al ancho catastral real (15.4 m x 34 m)
+  g.add(box(THREE, 15.6, 2.2, 33.5, mStone, 0, 1.1, 0));
 
   // Nave central y naves laterales
-  g.add(box(THREE, 12.2, 11.5, 31.5, mCream, 0, 2.2 + 5.75, -0.5));
-  g.add(box(THREE, 19.2, 8.2, 30.5, mCream, 0, 2.2 + 4.1, -0.5));
+  g.add(box(THREE, 10.4, 11.5, 31.5, mCream, 0, 2.2 + 5.75, -0.5));
+  g.add(box(THREE, 15.0, 8.2, 30.5, mCream, 0, 2.2 + 4.1, -0.5));
 
   // Techos inclinados a dos aguas sobre la nave
-  const roofSlopeL = box(THREE, 7.6, 0.45, 32.2, mRoof, -3.3, 14.9, -0.5, 0, 0, 0.42);
-  const roofSlopeR = box(THREE, 7.6, 0.45, 32.2, mRoof, 3.3, 14.9, -0.5, 0, 0, -0.42);
+  const roofSlopeL = box(THREE, 6.4, 0.45, 32.2, mRoof, -2.8, 14.8, -0.5, 0, 0, 0.42);
+  const roofSlopeR = box(THREE, 6.4, 0.45, 32.2, mRoof, 2.8, 14.8, -0.5, 0, 0, -0.42);
   g.add(roofSlopeL, roofSlopeR);
   // Techos bajos laterales
-  g.add(box(THREE, 4.2, 0.35, 31.0, mRoof, -7.8, 10.6, -0.5, 0, 0, 0.25));
-  g.add(box(THREE, 4.2, 0.35, 31.0, mRoof, 7.8, 10.6, -0.5, 0, 0, -0.25));
+  g.add(box(THREE, 3.2, 0.35, 31.0, mRoof, -6.1, 10.6, -0.5, 0, 0, 0.25));
+  g.add(box(THREE, 3.2, 0.35, 31.0, mRoof, 6.1, 10.6, -0.5, 0, 0, -0.25));
 
-  // Fachada principal frontal (+Z = +16.2)
-  g.add(box(THREE, 19.4, 8.8, 0.9, mCream, 0, 6.6, 15.8));
-  g.add(box(THREE, 12.0, 6.2, 0.9, mCream, 0, 12.8, 15.8));
+  // Fachada principal frontal (+Z = +15.8)
+  g.add(box(THREE, 15.2, 8.8, 0.9, mCream, 0, 6.6, 15.8));
+  g.add(box(THREE, 10.2, 6.2, 0.9, mCream, 0, 12.8, 15.8));
 
   // Frontón triangular superior con cornisa rosado-terracota
-  g.add(box(THREE, 7.4, 0.65, 1.15, mTrim, -3.0, 15.8, 16.0, 0, 0, 0.45));
-  g.add(box(THREE, 7.4, 0.65, 1.15, mTrim, 3.0, 15.8, 16.0, 0, 0, -0.45));
+  g.add(box(THREE, 6.2, 0.65, 1.15, mTrim, -2.5, 15.7, 16.0, 0, 0, 0.45));
+  g.add(box(THREE, 6.2, 0.65, 1.15, mTrim, 2.5, 15.7, 16.0, 0, 0, -0.45));
 
   // 4 Pilastras verticales rosado-terracota
-  for (const px of [-9.3, -4.6, 4.6, 9.3]) {
-    const ph = Math.abs(px) < 6 ? 15.2 : 10.6;
-    g.add(box(THREE, 0.85, ph, 1.25, mTrim, px, ph * 0.5 + 0.2, 16.05));
+  for (const px of [-7.3, -3.8, 3.8, 7.3]) {
+    const ph = Math.abs(px) < 5 ? 15.2 : 10.6;
+    g.add(box(THREE, 0.75, ph, 1.25, mTrim, px, ph * 0.5 + 0.2, 16.05));
   }
 
   // Portal ojival central
@@ -145,22 +145,22 @@ export function createCatedral3D(THREE) {
 
   // Ventanas ojivales gemelas a izquierda y derecha
   for (const side of [-1, 1]) {
-    for (const dx of [-0.75, 0.75]) {
-      const wx = side * 6.95 + dx;
-      g.add(box(THREE, 1.05, 4.4, 0.45, mTrim, wx, 5.6, 16.2));
-      g.add(box(THREE, 0.72, 3.8, 0.55, mStainedGlass, wx, 5.6, 16.25));
+    for (const dx of [-0.55, 0.55]) {
+      const wx = side * 5.55 + dx;
+      g.add(box(THREE, 0.88, 4.4, 0.45, mTrim, wx, 5.6, 16.2));
+      g.add(box(THREE, 0.62, 3.8, 0.55, mStainedGlass, wx, 5.6, 16.25));
     }
   }
 
-  // Torre campanario central (se eleva verticalmente sobre +Y hasta ~29.5 m)
-  g.add(box(THREE, 5.4, 7.5, 5.4, mCream, 0, 19.2, 13.8));
-  g.add(box(THREE, 5.8, 0.6, 5.8, mTrim, 0, 22.9, 13.8));
+  // Torre campanario central (se eleva verticalmente sobre +Y hasta ~30.8 m)
+  g.add(box(THREE, 5.0, 7.5, 5.0, mCream, 0, 19.2, 13.8));
+  g.add(box(THREE, 5.4, 0.6, 5.4, mTrim, 0, 22.9, 13.8));
   // Ventanales de campanas en las 4 caras
-  g.add(box(THREE, 2.6, 3.6, 5.6, mDarkWood, 0, 20.0, 13.8));
-  g.add(box(THREE, 5.6, 3.6, 2.6, mDarkWood, 0, 20.0, 13.8));
+  g.add(box(THREE, 2.4, 3.6, 5.2, mDarkWood, 0, 20.0, 13.8));
+  g.add(box(THREE, 5.2, 3.6, 2.4, mDarkWood, 0, 20.0, 13.8));
 
   // Aguja piramidal alta + cruz
-  const mainSpire = new THREE.Mesh(new THREE.ConeGeometry(3.3, 6.8, 4), mRoof);
+  const mainSpire = new THREE.Mesh(new THREE.ConeGeometry(3.1, 6.8, 4), mRoof);
   mainSpire.position.set(0, 26.5, 13.8);
   mainSpire.rotation.y = Math.PI * 0.25;
   g.add(mainSpire);
@@ -168,16 +168,16 @@ export function createCatedral3D(THREE) {
   g.add(box(THREE, 1.0, 0.22, 0.22, mGold, 0, 30.8, 13.8));
 
   // Torretas laterales y pináculos de esquina
-  for (const sx of [-4.6, 4.6]) {
-    g.add(box(THREE, 1.6, 3.6, 1.6, mCream, sx, 17.2, 15.8));
-    const sp = new THREE.Mesh(new THREE.ConeGeometry(1.1, 2.8, 4), mRoof);
+  for (const sx of [-3.8, 3.8]) {
+    g.add(box(THREE, 1.4, 3.6, 1.4, mCream, sx, 17.2, 15.8));
+    const sp = new THREE.Mesh(new THREE.ConeGeometry(0.95, 2.8, 4), mRoof);
     sp.position.set(sx, 20.4, 15.8);
     sp.rotation.y = Math.PI * 0.25;
     g.add(sp);
   }
-  for (const sx of [-9.3, 9.3]) {
-    g.add(box(THREE, 1.3, 2.6, 1.3, mCream, sx, 12.1, 15.8));
-    const sp = new THREE.Mesh(new THREE.ConeGeometry(0.9, 2.2, 4), mRoof);
+  for (const sx of [-7.3, 7.3]) {
+    g.add(box(THREE, 1.15, 2.6, 1.15, mCream, sx, 12.1, 15.8));
+    const sp = new THREE.Mesh(new THREE.ConeGeometry(0.8, 2.2, 4), mRoof);
     sp.position.set(sx, 14.5, 15.8);
     sp.rotation.y = Math.PI * 0.25;
     g.add(sp);
@@ -546,10 +546,10 @@ export function buildLandmarks3D(THREE, mapData, colliderGrid = null, gltfLoader
       case 'catedral': {
         obj = createCatedral3D(THREE);
         obj.position.set(lm.cx, 0, lm.cz);
-        // La fachada en createCatedral3D mira a +Z; apuntarla hacia Plaza 23 de Marzo (-17.7, -2.1)
-        const lookYaw = Math.atan2(-17.7 - lm.cx, -2.1 - lm.cz);
+        // Alinear exactamente con el eje longitudinal real de la Catedral mirando al Este hacia la explanada de Plaza 23 de Marzo
+        const lookYaw = Math.atan2(2.0 - lm.cx, -10.5 - lm.cz);
         obj.rotation.y = lookYaw;
-        colliderPoly = lm.p && lm.p.length >= 6 ? lm.p : makeRectCollider(lm.cx, lm.cz, 10, 16, lookYaw);
+        colliderPoly = lm.p && lm.p.length >= 6 ? lm.p : makeRectCollider(lm.cx, lm.cz, 7.8, 16, lookYaw);
 
         // Si se entrega GLTFLoader en navegador, cargar catedral_calama.glb opcionalmente si existe y normalizar Y-up
         if (gltfLoader && typeof gltfLoader.load === 'function') {
@@ -573,9 +573,17 @@ export function buildLandmarks3D(THREE, mapData, colliderGrid = null, gltfLoader
       }
       case 'plaza23': {
         obj = createPlaza23DeMarzo3D(THREE);
-        obj.position.set(lm.cx, 0, lm.cz);
-        // Solo colisionar el odeón central (radio ~5.5 m), dejando toda la plaza caminable
-        colliderPoly = makeRectCollider(lm.cx, lm.cz, 5.4, 5.4, 0);
+        // Explanada abierta oriental de la Plaza 23 de Marzo frente a la Catedral
+        const esplanadeX = 1.5;
+        const esplanadeZ = 0.0;
+        obj.position.set(esplanadeX, 0, esplanadeZ);
+        colliderPoly = makeRectCollider(esplanadeX, esplanadeZ, 5.4, 5.4, 0);
+        if (colliderGrid) {
+          colliderGrid.addPolygon(makeRectCollider(esplanadeX + 14, esplanadeZ - 4, 3.9, 3.9, 0), {
+            kind: 'landmark_fountain',
+            name: 'Fuente Plaza 23 de Marzo',
+          });
+        }
         break;
       }
       case 'municipalidad': {

@@ -121,3 +121,17 @@ test('TrafficAndPeds respects directed oneway graph edges and stops at red traff
   camCtrl.update(0.016, { x: 0, y: 0, z: 0, yaw: 0, inVehicle: false });
   assert.equal(Number.isFinite(cam.position.x), true);
 });
+
+test('VehicleController and PlayerController merge static sub-parts to keep GT 640 draw calls low', () => {
+  const pickup = new VehicleController(THREE, { variant: 'pickup_minera' });
+  let carMeshes = 0;
+  pickup.mesh.traverse((o) => { if (o.isMesh) carMeshes++; });
+  // Shadow (1) + merged body (1) + merged brake lights (1) + 4 merged wheels (4) <= 7 meshes
+  assert.ok(carMeshes <= 7, `Too many meshes per vehicle (${carMeshes}); merge static parts for GT 640`);
+
+  const player = new PlayerController(THREE, {});
+  let playerMeshes = 0;
+  player.mesh.traverse((o) => { if (o.isMesh) playerMeshes++; });
+  // Shadow (1) + merged torso/head/hair (1) + 2 legs + 2 arms <= 6 meshes
+  assert.ok(playerMeshes <= 6, `Too many meshes per character (${playerMeshes}); merge limb parts for GT 640`);
+});

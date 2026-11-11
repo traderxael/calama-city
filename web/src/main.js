@@ -88,7 +88,7 @@ async function initCalamaCity() {
 
     const gltfLoader = new GLTFLoader();
     const world = buildWorld(THREE, mapData, {
-      chunkSize: 550,
+      chunkSize: 950,
       doc: document,
       gltfLoader,
     });
@@ -114,29 +114,29 @@ async function initCalamaCity() {
     };
     applyTimePreset(0);
 
-    // Posición inicial en el borde sur de la Plaza 23 de Marzo mirando hacia la Catedral y el Odeón
-    const startPos = world.colliderGrid.resolveCircle(-22.0, 14.0, 0.8);
+    // Posición inicial en el borde oriental de Plaza 23 de Marzo mirando directo al Odeón y la Catedral San Juan Bautista
+    const startPos = world.colliderGrid.resolveCircle(21.5, 9.5, 0.8);
     const player = new PlayerController(THREE, {
       x: startPos.x,
       z: startPos.z,
-      yaw: 0.42,
+      yaw: 1.25,
     });
     scene.add(player.mesh);
 
-    // Vehículos iniciales estacionados junto a la Plaza 23 de Marzo listos para conducir
-    const pickupPos = world.colliderGrid.resolveCircle(-26.5, 16.5, 1.5);
+    // Camioneta minera 4x4 estacionada sobre el asfalto de calle Balmaceda junto a la acera (a 3.5m -> aviso E inmediato)
+    const pickupPos = world.colliderGrid.resolveCircle(25.0, 9.5, 1.5);
     const heroPickup = new VehicleController(THREE, {
       variant: 'pickup_minera',
       x: pickupPos.x,
       z: pickupPos.z,
-      yaw: 0.0,
+      yaw: 0.04,
     });
-    const colectivoPos = world.colliderGrid.resolveCircle(-6.0, 25.0, 1.5);
+    const colectivoPos = world.colliderGrid.resolveCircle(25.2, -4.0, 1.5);
     const heroColectivo = new VehicleController(THREE, {
       variant: 'colectivo',
       x: colectivoPos.x,
       z: colectivoPos.z,
-      yaw: Math.PI * 0.5,
+      yaw: 0.04,
     });
     scene.add(heroPickup.mesh, heroColectivo.mesh);
     const parkedVehicles = [heroPickup, heroColectivo];
@@ -199,9 +199,18 @@ async function initCalamaCity() {
       onChangeQuality: (q) => applyQuality(q),
       getPlayerState: () => getActiveFocus(),
       onTeleport: (tx, tz) => {
-        // Desplazar ligeramente hacia la calle más cercana si el centroide del hito es sólido
-        const safe = world.colliderGrid.resolveCircle(tx, tz + 16, 1.6);
+        // Ubicar en un punto despejado frente al hito y orientar jugador + cámara directo hacia (tx, tz)
+        const safe = world.colliderGrid.resolveCircle(tx + 4, tz + 38, 2.0);
         player.teleportTo(safe.x, safe.z, world.colliderGrid);
+        const lookYaw = Math.atan2(-(tx - safe.x), -(tz - safe.z));
+        if (player.inVehicle) {
+          player.inVehicle.yaw = lookYaw;
+          player.inVehicle._syncTransform();
+        } else {
+          player.yaw = lookYaw;
+          player._syncTransform();
+        }
+        camCtrl.yaw = lookYaw;
       },
     });
 

@@ -1,9 +1,66 @@
+import * as BufferGeometryUtils from '../../vendor/BufferGeometryUtils.js';
+
 /**
  * Vehículos 3D detallados característicos de Calama y modelo físico estable:
  * - 'pickup_minera': Camioneta 4x4 doble cabina roja/blanca con barra antivuelco y baliza minera
  * - 'colectivo': Taxi colectivo urbano negro con letrero amarillo de recorrido calameño
  * - 'sedan': Automóvil particular urbano
+ * Todas las piezas estáticas del chasis y de cada rueda se fusionan con colores por vértice
+ * para reducir de 25 a 7 mallas por vehículo y cuidar la GPU GT 640.
  */
+
+const SHARED_MATS = new WeakMap();
+function getSharedVehicleMats(THREE) {
+  let m = SHARED_MATS.get(THREE);
+  if (!m) {
+    m = {
+      vertexLit: new THREE.MeshLambertMaterial({ vertexColors: true }),
+      shadow: new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.34, depthWrite: false }),
+    };
+    SHARED_MATS.set(THREE, m);
+  }
+  return m;
+}
+
+function colorGeo(THREE, geo, hex) {
+  const g = geo.index ? geo.toNonIndexed() : geo.clone();
+  for (const attr of Object.keys(g.attributes)) {
+    if (attr !== 'position' && attr !== 'normal') g.deleteAttribute(attr);
+  }
+  const c = new THREE.Color(hex);
+  const count = g.attributes.position.count;
+  const arr = new Float32Array(count * 3);
+  for (let i = 0; i < count; i++) {
+    arr[i * 3] = c.r;
+    arr[i * 3 + 1] = c.g;
+    arr[i * 3 + 2] = c.b;
+  }
+  g.setAttribute('color', new THREE.BufferAttribute(arr, 3));
+  return g;
+}
+
+function collapseMeshesInGroup(THREE, group, sharedLitMat, keepMaterials = new Set()) {
+  group.updateMatrixWorld(true);
+  const invRoot = new THREE.Matrix4().copy(group.matrixWorld).invert();
+  const geos = [];
+  const toRemove = [];
+
+  for (const child of [...group.children]) {
+    if (!child.isMesh || keepMaterials.has(child.material)) continue;
+    const rel = new THREE.Matrix4().multiplyMatrices(invRoot, child.matrixWorld);
+    const cg = colorGeo(THREE, child.geometry, child.material?.color?.getHex?.() ?? 0xffffff);
+    cg.applyMatrix4(rel);
+    geos.push(cg);
+    toRemove.push(child);
+  }
+
+  for (const ch of toRemove) group.remove(ch);
+  if (geos.length) {
+    const merged = BufferGeometryUtils.mergeGeometries(geos, false);
+    merged.computeBoundingSphere();
+    group.add(new THREE.Mesh(merged, sharedLitMat));
+  }
+}
 
 export function createVehicleMesh(THREE, variant = 'pickup_minera', bodyColorOverride = null) {
   const root = new THREE.Group();
@@ -115,20 +172,29 @@ export function createVehicleMesh(THREE, variant = 'pickup_minera', bodyColorOve
     }
   }
 
-  // Focos delanteros (-Z) y luces de freno traseras (+Z)
   const zFront = variant === 'pickup_minera' ? -2.39 : -2.19;
   const zRear = variant === 'pickup_minera' ? 2.39 : 2.19;
   const yLight = variant === 'pickup_minera' ? 0.82 : 0.66;
 
+  const brakeGeos = [];
   for (const sx of [-0.68, 0.68]) {
     const hl = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.18, 0.06), mHeadlight);
     hl.position.set(sx, yLight, zFront);
-    const bl = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.18, 0.06), brakeLightMat);
-    bl.position.set(sx, yLight, zRear);
-    bodyGroup.add(hl, bl);
-  }
+    bodyGroup.add(hl);
 
-  // 4 Ruedas independientes con giro y viraje delantero
+    const bg = new THREE.BoxGeometry(0.34, 0.18, 0.06);
+    bg.translate(sx, yLight, zRear);
+    brakeGeos.push(bg);
+  }
+  const shared = getSharedVehicleMats(THREE);
+  shadow.material = shared.shadow;
+
+  // Fusionar todas las piezas estáticas de carrocería en 1 sola malla + 1 malla para ambas luces de freno
+  collapseMeshesInGroup(THREE, bodyGroup, shared.vertexLit);
+  const mergedBrakes = BufferGeometryUtils.mergeGeometries(brakeGeos, false);
+  bodyGroup.add(new THREE.Mesh(mergedBrakes, brakeLightMat));
+
+  // 4 Ruedas independientes (neumático + llanta fusionados en 1 malla por rueda)
   const wheelRadius = variant === 'pickup_minera' ? 0.40 : 0.34;
   const wheelWidth = 0.26;
   const wheelX = variant === 'pickup_minera' ? 0.94 : 0.88;
@@ -139,6 +205,11 @@ export function createVehicleMesh(THREE, variant = 'pickup_minera', bodyColorOve
   tireGeo.rotateZ(Math.PI * 0.5);
   const rimGeo = new THREE.CylinderGeometry(wheelRadius * 0.58, wheelRadius * 0.58, wheelWidth + 0.02, 8);
   rimGeo.rotateZ(Math.PI * 0.5);
+  const wheelMergedGeo = BufferGeometryUtils.mergeGeometries([
+    colorGeo(THREE, tireGeo, 0x1b1c1e),
+    colorGeo(THREE, rimGeo, 0xb8bec6),
+  ], false);
+  wheelMergedGeo.computeBoundingSphere();
 
   const wheels = [];
   const wheelDefs = [
@@ -152,7 +223,7 @@ export function createVehicleMesh(THREE, variant = 'pickup_minera', bodyColorOve
     const steerPivot = new THREE.Group();
     steerPivot.position.set(wd.x, wheelRadius, wd.z);
     const spinPivot = new THREE.Group();
-    spinPivot.add(new THREE.Mesh(tireGeo, mTire), new THREE.Mesh(rimGeo, mRim));
+    spinPivot.add(new THREE.Mesh(wheelMergedGeo, shared.vertexLit));
     steerPivot.add(spinPivot);
     root.add(steerPivot);
     wheels.push({ steerPivot, spinPivot, front: wd.front, radius: wheelRadius });
