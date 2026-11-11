@@ -4,6 +4,7 @@ import { createCityTextures } from './ProceduralTextures.js';
 import { buildRoadMeshes } from './RoadNetworkMesh.js';
 import { buildChunkedBuildings } from './BuildingMesh.js';
 import { buildStreetProps } from './StreetProps.js';
+import { buildLandmarks3D } from './Landmarks3D.js';
 
 /**
  * Ensamblador principal del mundo 3D de Calama:
@@ -256,7 +257,13 @@ export function buildWorld(THREE, mapData, options = {}) {
     colliderGrid.addPolygon(buildings[i].p, { kind: 'building', h: buildings[i].h });
   }
 
-  // 5. Mobiliario urbano y semáforos reales (InstancedMesh)
+  // 5. Hitos arquitectónicos 3D reales de Calama
+  const landmarksRes = options.includeLandmarks === false
+    ? { group: new THREE.Group(), items: [] }
+    : buildLandmarks3D(THREE, mapData, colliderGrid, options.gltfLoader || null);
+  root.add(landmarksRes.group);
+
+  // 6. Mobiliario urbano y semáforos reales (InstancedMesh)
   const propsCtrl = buildStreetProps(THREE, mapData);
   root.add(propsCtrl.group);
 
@@ -270,6 +277,7 @@ export function buildWorld(THREE, mapData, options = {}) {
     textures,
     colliderGrid,
     propsCtrl,
+    landmarks: landmarksRes.items,
     buildingMaterials: bRes.materials,
     stats: {
       drawCallsStatic: staticMeshCount,
