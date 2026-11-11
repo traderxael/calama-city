@@ -1,0 +1,486 @@
+:root {
+  --bg-glass: rgba(16, 20, 26, 0.82);
+  --bg-glass-strong: rgba(14, 18, 24, 0.94);
+  --border-copper: rgba(212, 122, 62, 0.45);
+  --border-subtle: rgba(255, 255, 255, 0.14);
+  --accent-copper: #e07a38;
+  --accent-gold: #f5c242;
+  --accent-cyan: #36d6ff;
+  --text-main: #f5f2eb;
+  --text-muted: #b7b0a4;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #10141a;
+  color: var(--text-main);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  user-select: none;
+}
+
+#game-canvas {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* Pantalla de carga */
+#loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: #12161d;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px;
+  text-align: center;
+}
+
+.loading-title {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--accent-copper);
+}
+
+.loading-sub {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+/* HUD Superior Izquierdo: Calle actual y GPS */
+.hud-top-left {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: min(380px, calc(100vw - 260px));
+}
+
+.street-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px;
+  background: var(--bg-glass);
+  border: 1px solid var(--border-copper);
+  border-radius: 10px;
+  backdrop-filter: blur(8px);
+}
+
+.compass-pill {
+  min-width: 34px;
+  height: 28px;
+  padding: 0 7px;
+  border-radius: 6px;
+  background: var(--accent-copper);
+  color: #111317;
+  font-weight: 800;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.street-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.street-caption {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+.street-name {
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gps-banner {
+  padding: 7px 12px;
+  background: rgba(16, 42, 58, 0.88);
+  border: 1px solid rgba(54, 214, 255, 0.5);
+  border-radius: 8px;
+  color: var(--accent-cyan);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.toolbar-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.hud-btn, .hud-select {
+  appearance: none;
+  background: var(--bg-glass);
+  color: var(--text-main);
+  border: 1px solid var(--border-subtle);
+  border-radius: 7px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.hud-btn:hover, .hud-select:hover {
+  border-color: var(--accent-copper);
+}
+
+/* HUD Superior Derecho: Minimapa */
+.hud-top-right {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.minimap-frame {
+  width: 196px;
+  height: 196px;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 2px solid var(--border-copper);
+  background: #161b22;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+  position: relative;
+}
+
+#minimap-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.minimap-hint {
+  position: absolute;
+  bottom: 6px;
+  left: 8px;
+  right: 8px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(245, 242, 235, 0.85);
+  background: rgba(12, 15, 20, 0.65);
+  padding: 2px 6px;
+  border-radius: 4px;
+  pointer-events: none;
+}
+
+.perf-readout {
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 11px;
+  color: var(--text-muted);
+  background: rgba(12, 15, 20, 0.6);
+  padding: 2px 7px;
+  border-radius: 5px;
+}
+
+/* Aviso contextual central (subir a vehículo) */
+.hud-prompt {
+  position: fixed;
+  bottom: 92px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 22;
+  background: var(--bg-glass-strong);
+  border: 1px solid var(--accent-gold);
+  color: var(--accent-gold);
+  padding: 9px 18px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 700;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+}
+
+/* HUD Inferior: Controles + Velocímetro + Atribución OSM */
+.hud-bottom-left {
+  position: fixed;
+  bottom: 14px;
+  left: 16px;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.controls-bar {
+  background: var(--bg-glass);
+  border: 1px solid var(--border-subtle);
+  padding: 7px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.controls-bar b {
+  color: var(--text-main);
+}
+
+.osm-credit {
+  font-size: 11px;
+  color: rgba(245, 242, 235, 0.65);
+}
+
+.osm-credit a {
+  color: #e8b082;
+  text-decoration: none;
+}
+
+.hud-bottom-right {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  z-index: 20;
+  background: var(--bg-glass);
+  border: 1px solid var(--border-copper);
+  border-radius: 12px;
+  padding: 10px 16px;
+  min-width: 148px;
+  text-align: right;
+  backdrop-filter: blur(8px);
+}
+
+.speed-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.speed-value {
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-main);
+}
+
+.speed-unit {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent-copper);
+}
+
+.mode-badge {
+  margin-top: 4px;
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+/* Modal Mapa GPS Completo */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(8, 11, 16, 0.82);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.map-dialog {
+  width: min(1080px, 96vw);
+  height: min(720px, 90vh);
+  background: var(--bg-glass-strong);
+  border: 1px solid var(--border-copper);
+  border-radius: 14px;
+  display: grid;
+  grid-template-columns: 310px 1fr;
+  overflow: hidden;
+}
+
+.map-sidebar {
+  padding: 16px;
+  border-right: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+}
+
+.map-sidebar h2 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.map-search {
+  width: 100%;
+  padding: 9px 11px;
+  border-radius: 8px;
+  border: 1px solid var(--border-subtle);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-main);
+  font-size: 13px;
+}
+
+.search-results {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.search-item {
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.search-item-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.search-item-title {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.search-item-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.search-item-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.btn-mini {
+  padding: 4px 9px;
+  border-radius: 6px;
+  border: 1px solid var(--border-subtle);
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--text-main);
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-accent {
+  background: var(--accent-copper);
+  color: #12151a;
+  border-color: transparent;
+}
+
+.map-viewport {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #171c24;
+}
+
+#fullmap-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+}
+
+.map-floating-controls {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* Pausa */
+.pause-card {
+  width: min(440px, 92vw);
+  padding: 24px;
+  border-radius: 14px;
+  background: var(--bg-glass-strong);
+  border: 1px solid var(--border-copper);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.pause-card h2 {
+  margin: 0;
+  font-size: 22px;
+  color: var(--accent-copper);
+}
+
+.pause-card p {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+/* Controles táctiles para móvil */
+.touch-controls {
+  display: none;
+}
+
+@media (pointer: coarse), (max-width: 760px) {
+  .controls-bar { display: none; }
+  .minimap-frame { width: 136px; height: 136px; }
+  .map-dialog { grid-template-columns: 1fr; grid-template-rows: 44% 56%; }
+  .touch-controls {
+    display: flex;
+    position: fixed;
+    bottom: 72px;
+    left: 16px;
+    z-index: 25;
+    gap: 8px;
+    align-items: center;
+  }
+  .touch-pad {
+    display: grid;
+    grid-template-columns: repeat(3, 44px);
+    grid-template-rows: repeat(2, 44px);
+    gap: 4px;
+  }
+  .touch-btn {
+    border-radius: 8px;
+    border: 1px solid var(--border-copper);
+    background: var(--bg-glass);
+    color: var(--text-main);
+    font-weight: 700;
+    font-size: 15px;
+  }
+}

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calama City 3D — Mapa Real OSM y Conducción en Three.js</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div id="loading-overlay" role="status" aria-live="polite">
+    <div class="loading-title">CALAMA CITY 3D</div>
+    <div id="loading-status" class="loading-sub">Iniciando motor Three.js...</div>
+  </div>
+
+  <canvas id="game-canvas"></canvas>
+
+  <!-- HUD Superior Izquierdo: Calle real actual, GPS y ajustes rápidos -->
+  <div class="hud-top-left">
+    <div class="street-card">
+      <span id="hud-compass" class="compass-pill">N</span>
+      <div class="street-meta">
+        <span class="street-caption">Ubicación en Calama</span>
+        <span id="hud-street" class="street-name">Plaza 23 de Marzo</span>
+      </div>
+    </div>
+    <div id="hud-gps-banner" class="gps-banner" hidden></div>
+    <div class="toolbar-row">
+      <button id="btn-open-map" type="button" class="hud-btn">Mapa GPS (M)</button>
+      <button id="btn-time" type="button" class="hud-btn">Luz: Día Atacama</button>
+      <button id="btn-camera" type="button" class="hud-btn">Cámara (C)</button>
+      <label for="select-quality" class=" street-caption" style="display:none;">Calidad</label>
+      <select id="select-quality" class="hud-select" aria-label="Calidad gráfica">
+        <option value="low">Calidad: Baja (GT 640)</option>
+        <option value="medium" selected>Calidad: Media</option>
+        <option value="high">Calidad: Alta</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- HUD Superior Derecho: Minimapa vectorial real -->
+  <div class="hud-top-right">
+    <div class="minimap-frame" title="Abrir Mapa GPS de Calama (M)">
+      <canvas id="minimap-canvas" width="210" height="210"></canvas>
+      <div class="minimap-hint">
+        <span>N ↑</span>
+        <span>M · Mapa</span>
+      </div>
+    </div>
+    <div id="hud-perf" class="perf-readout">60 FPS</div>
+  </div>
+
+  <!-- Aviso contextual -->
+  <div id="hud-prompt" class="hud-prompt" hidden>Presiona E para conducir</div>
+
+  <!-- Controles táctiles en pantallas móviles -->
+  <div class="touch-controls">
+    <div class="touch-pad">
+      <span></span>
+      <button id="touch-up" type="button" class="touch-btn">▲</button>
+      <span></span>
+      <button id="touch-left" type="button" class="touch-btn">◀</button>
+      <button id="touch-down" type="button" class="touch-btn">▼</button>
+      <button id="touch-right" type="button" class="touch-btn">▶</button>
+    </div>
+    <button id="touch-car" type="button" class="hud-btn">Auto (E)</button>
+  </div>
+
+  <!-- Guía de controles y créditos OSM -->
+  <div class="hud-bottom-left">
+    <div class="controls-bar">
+      <b>WASD</b> mover/conducir · <b>Shift</b> correr · <b>Espacio</b> saltar/freno · <b>E</b> subir/bajar auto · <b>M</b> mapa GPS · <b>T</b> luz · <b>Esc</b> pausa
+    </div>
+    <div class="osm-credit">
+      Cartografía escala 1:1 © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a> (ODbL)
+    </div>
+  </div>
+
+  <!-- Velocímetro -->
+  <div class="hud-bottom-right">
+    <div class="speed-row">
+      <span id="hud-speed-val" class="speed-value">0</span>
+      <span class="speed-unit">KM/H</span>
+    </div>
+    <div id="hud-mode-badge" class="mode-badge">Explorando a pie</div>
+  </div>
+
+  <!-- Mapa GPS Interactivo Pantalla Completa -->
+  <div id="map-modal" class="modal-backdrop" hidden>
+    <div class="map-dialog" role="dialog" aria-label="Mapa GPS de Calama">
+      <div class="map-sidebar">
+        <h2>Mapa y GPS — Calama Real</h2>
+        <label for="map-search-input" class="street-caption">Buscar calle, hito o comercio</label>
+        <input id="map-search-input" type="search" class="map-search" placeholder="Ej: Ramírez, Catedral, Zorros, Codelco..." />
+        <div id="map-search-results" class="search-results"></div>
+      </div>
+      <div class="map-viewport">
+        <canvas id="fullmap-canvas" width="760" height="680"></canvas>
+        <div class="map-floating-controls">
+          <button id="btn-zoom-in" type="button" class="hud-btn">+</button>
+          <button id="btn-zoom-out" type="button" class="hud-btn">−</button>
+          <button id="btn-toggle-tiles" type="button" class="hud-btn" aria-pressed="false">Teselas OSM: Offline</button>
+          <button id="btn-clear-route" type="button" class="hud-btn">Limpiar ruta</button>
+          <button id="btn-close-map" type="button" class="hud-btn btn-accent">Cerrar (M)</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pausa y Créditos -->
+  <div id="pause-modal" class="modal-backdrop" hidden>
+    <div class="pause-card" role="dialog" aria-label="Menú de Pausa">
+      <h2>PAUSA — CALAMA CITY</h2>
+      <p>
+        Recreación 3D a escala real (1 metro = 1 unidad) de la ciudad de Calama, Región de Antofagasta, Chile.
+        Incluye 3.005 tramos viales reales, 209 semáforos, 651 pasos de cebra e hitos arquitectónicos emblemáticos.
+      </p>
+      <p>
+        Datos geográficos: <strong>© OpenStreetMap contributors (ODbL)</strong>. Modelos y texturas procedurales optimizados en Three.js.
+      </p>
+      <button id="btn-resume" type="button" class="hud-btn btn-accent">Continuar jugando (Esc)</button>
+    </div>
+  </div>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>

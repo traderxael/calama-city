@@ -2,10 +2,32 @@
 
 Juego 3D sandbox en el centro de Calama, Chile. Recorre la Plaza 23 de Marzo, las calles del centro y conduce un coche.
 
-Motor: **Unity 6000.6.5f1** — **Built-in Render Pipeline** (sin URP).
-Escena jugable: `Assets/Scenes/CalamaCity.unity`.
+Motor Unity: **Unity 6000.6.5f1** — **Built-in Render Pipeline** (sin URP).
+Escena jugable Unity: `Assets/Scenes/CalamaCity.unity`.
+Versión Web 3D (**Three.js + OpenStreetMap escala 1:1**): carpeta [`web/`](web/index.html) (lista para GitHub Pages).
 
-## Cómo abrir
+## Versión Web 3D en Three.js (`web/`)
+
+Recreación jugable en navegador a escala real (`1 unidad = 1 metro`, origen en Plaza 23 de Marzo) construida a partir de datos reales de **OpenStreetMap**:
+- **3.005 tramos de calles reales** con nombres, sentidos `oneway`, **209 semáforos reales** y **651 pasos de cebra**.
+- **6.473 edificaciones** (huellas reales OSM + relleno urbano de cuadras vacías respetando veredas, plazas, parques, vía férrea FCAB y Río Loa).
+- **Hitos 3D detallados de Calama:** Catedral San Juan Bautista, Plaza 23 de Marzo, Ilustre Municipalidad, Paseo Eleuterio Ramírez y Monumento al Minero, Edificio Corporativo Codelco Norte, Estadio Zorros del Desierto, Mall Plaza, Terminal de Buses y Parque El Loa.
+- **Conducción, tráfico IA y GPS interactivo (`M`):** camioneta pickup minera 4x4, colectivos urbanos y sedanes, ciclo solar del Atacama (`T`: Día, Atardecer Calameño, Noche) y buscador de calles/POIs con ruteo GPS A*.
+
+```bash
+# Ejecutar localmente sin compilación
+python -m http.server 8080 --directory web
+# Abrir http://localhost:8080
+
+# Regenerar dataset cartográfico desde OSM y correr suites de pruebas Web + Datos
+python Tools/generar_datos_web.py
+python -m unittest discover -s tests -p "test_*.py" -v
+node --test tests/web/*.test.mjs
+```
+
+El workflow [`.github/workflows/pages.yml`](.github/workflows/pages.yml) publica `./web` directamente en **GitHub Pages** (en Settings → Pages elegir *Source: GitHub Actions*).
+
+## Cómo abrir (Unity 6)
 
 1. Unity Hub → Add project → esta carpeta, con Unity **6000.6.5f1**.
 2. Abrir `Assets/Scenes/CalamaCity.unity` y darle Play.
