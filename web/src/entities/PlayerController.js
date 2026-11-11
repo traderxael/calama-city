@@ -122,6 +122,7 @@ export class PlayerController {
     if (!vehicle) return;
     this.inVehicle = vehicle;
     vehicle.isPlayerDriven = true;
+    vehicle.claimedByPlayer = true;
     this.mesh.visible = false;
     this.currentSpeed = 0;
   }

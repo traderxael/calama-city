@@ -72,3 +72,47 @@ test('MapGPSController gracefully degrades to offline vector map when remote OSM
 
   assert.equal(gps.tileFallbackActive, true);
 });
+
+test('MapGPSController.renderToCanvas draws long avenues whose endpoints lie outside minimap window', () => {
+  const miniMapData = {
+    roads: [
+      // Long 1200m avenue crossing right through (0, 0), with both endpoints at x = -600 and x = +600
+      { id: 1, n: 'Avenida Granaderos', t: 'primary', w: 14, o: 0, s: 'asphalt', p: [-600, 0, 600, 0] },
+    ],
+    parks: [],
+    plazas: [],
+    waterLines: [],
+    buildings: [],
+    landmarks: [],
+    graph: { nodes: [], edges: [] },
+  };
+  const gps = new MapGPSController(miniMapData);
+  let strokeCalls = 0;
+  const fakeCtx = {
+    fillStyle: '',
+    strokeStyle: '',
+    lineWidth: 1,
+    lineCap: 'round',
+    font: '',
+    textAlign: '',
+    textBaseline: '',
+    fillRect() {},
+    beginPath() {},
+    moveTo() {},
+    lineTo() {},
+    closePath() {},
+    fill() {},
+    stroke() { strokeCalls++; },
+    arc() {},
+    save() {},
+    restore() {},
+    translate() {},
+    rotate() {},
+    fillText() {},
+  };
+
+  // Minimap 200x200 at 1.5 m/px => halfW = 165m (endpoints -600 and +600 are outside, but segment crosses center!)
+  gps.renderToCanvas(fakeCtx, 200, 200, { centerX: 0, centerZ: 0, metersPerPixel: 1.5, showLabels: false });
+  // Player arrow does 1 stroke(); road must add a 2nd stroke()!
+  assert.ok(strokeCalls >= 2, `Expected long avenue crossing view to be stroked, got strokeCalls=${strokeCalls}`);
+});

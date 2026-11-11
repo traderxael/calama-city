@@ -135,3 +135,29 @@ test('VehicleController and PlayerController merge static sub-parts to keep GT 6
   // Shadow (1) + merged torso/head/hair (1) + 2 legs + 2 arms <= 6 meshes
   assert.ok(playerMeshes <= 6, `Too many meshes per character (${playerMeshes}); merge limb parts for GT 640`);
 });
+
+test('Hijacked AI traffic car stays parked where player exits instead of snapping back to old AI edge', () => {
+  const fakeMap = {
+    graph: {
+      nodes: [0, 30, 0, 0, 0, -30],
+      edges: [[0, 1, 0, 1], [1, 2, 0, 1]],
+    },
+    signals: [],
+    plazas: [],
+    parks: [],
+  };
+  const traffic = new TrafficAndPeds(THREE, fakeMap, null, { maxCars: 1, maxPeds: 0 });
+  const aiCar = traffic.vehicles[0];
+  const player = new PlayerController(THREE, { x: aiCar.x + 1, z: aiCar.z });
+
+  player.enterVehicle(aiCar);
+  // Player drives car far away to (150, -220)
+  aiCar.x = 150;
+  aiCar.z = -220;
+  aiCar._syncTransform();
+  player.exitVehicle(null);
+
+  // Advance AI traffic update: exited car MUST remain parked at (150, -220), NOT snap back to graph edge near (0, 30)
+  traffic.update(0.05, 150, -220, 2.0);
+  assert.ok(Math.hypot(aiCar.x - 150, aiCar.z - (-220)) < 1.0, `Exited AI car snapped back to (${aiCar.x}, ${aiCar.z})`);
+});

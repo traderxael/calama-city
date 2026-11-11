@@ -171,7 +171,17 @@ export class TrafficAndPeds {
     for (let i = 0; i < this.cars.length; i++) {
       const ai = this.cars[i];
       const veh = ai.vehicle;
-      if (veh.isPlayerDriven) continue;
+      if (veh.isPlayerDriven) {
+        veh.mesh.visible = true;
+        continue;
+      }
+      if (veh.claimedByPlayer) {
+        if (Math.abs(veh.speed) > 0.02) {
+          veh.update(dt, { throttle: 0, steer: 0, handbrake: true }, colliderGrid);
+        }
+        veh.mesh.visible = Math.hypot(veh.x - focusX, veh.z - focusZ) <= 240;
+        continue;
+      }
 
       const ux = this.nodes[2 * ai.fromNode], uz = this.nodes[2 * ai.fromNode + 1];
       const vx = this.nodes[2 * ai.toNode], vz = this.nodes[2 * ai.toNode + 1];

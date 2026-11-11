@@ -81,3 +81,17 @@ test('buildLandmarks3D places real Calama landmarks at accurate OSM coordinates 
   const colCat = grid.resolveCircle(catedralItem.x, catedralItem.z, 1.0);
   assert.equal(colCat.hit, true);
 });
+
+test('Landmarks3D instantiates Cobreloa 3D mesh and keeps Mall Plaza parking esplanade free of invisible walls', () => {
+  const grid = new SpatialGrid(32);
+  const res = buildLandmarks3D(THREE, mapData, grid);
+
+  const cobreloaItems = res.items.filter((i) => i.kind === 'cobreloa' && i.object !== null);
+  assert.ok(cobreloaItems.length >= 1, 'Cobreloa landmarks must have non-null 3D mesh');
+
+  const mallItem = res.items.find((i) => i.kind === 'mall');
+  assert.ok(mallItem);
+  // 120m away from Mall building center (inside outer parking lot) must NOT hit invisible Mall building collider
+  const parkingCheck = grid.resolveCircle(mallItem.x, mallItem.z + 120, 1.2);
+  assert.equal(parkingCheck.hit, false, 'Mall parking lot 120m from Mall building should not have invisible wall');
+});

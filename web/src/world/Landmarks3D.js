@@ -508,6 +508,20 @@ export function createDinosaurioLoa3D(THREE) {
   return g;
 }
 
+export function createCobreloa3D(THREE) {
+  const g = new THREE.Group();
+  g.name = 'SedeCobreloaCalama';
+  const mWhite = new THREE.MeshLambertMaterial({ color: 0xf2eee6 });
+  const mOrange = new THREE.MeshLambertMaterial({ color: 0xe85d1a });
+  const mGlass = new THREE.MeshLambertMaterial({ color: 0x2a4d69 });
+
+  g.add(box(THREE, 18, 8.8, 14, mWhite, 0, 4.4, 0));
+  g.add(box(THREE, 18.4, 1.4, 14.4, mOrange, 0, 8.2, 0));
+  g.add(box(THREE, 18.2, 0.8, 14.2, mOrange, 0, 0.4, 0));
+  g.add(box(THREE, 8.5, 4.2, 0.4, mGlass, 0, 3.2, 7.05));
+  return g;
+}
+
 function makeRectCollider(cx, cz, halfW, halfD, yaw = 0) {
   const c = Math.cos(yaw);
   const s = Math.sin(yaw);
@@ -589,8 +603,9 @@ export function buildLandmarks3D(THREE, mapData, colliderGrid = null, gltfLoader
       case 'municipalidad': {
         obj = createMunicipalidad3D(THREE);
         obj.position.set(lm.cx, 0, lm.cz);
-        obj.rotation.y = yaw;
-        colliderPoly = lm.p && lm.p.length >= 6 ? lm.p : makeRectCollider(lm.cx, lm.cz, 12, 9, yaw);
+        const mYaw = -(lm.angle || 0);
+        obj.rotation.y = mYaw;
+        colliderPoly = lm.p && lm.p.length >= 6 ? lm.p : makeRectCollider(lm.cx, lm.cz, 12, 9, mYaw);
         break;
       }
       case 'codelco': {
@@ -616,8 +631,17 @@ export function buildLandmarks3D(THREE, mapData, colliderGrid = null, gltfLoader
       case 'mall': {
         obj = createMallYTerminal3D(THREE, 'mall');
         obj.position.set(lm.cx, 0, lm.cz);
-        obj.rotation.y = -(lm.angle || 0);
-        colliderPoly = lm.p && lm.p.length >= 6 ? lm.p : makeRectCollider(lm.cx, lm.cz, 43, 24, -(lm.angle || 0));
+        const mallYaw = -(lm.angle || 0);
+        obj.rotation.y = mallYaw;
+        colliderPoly = makeRectCollider(lm.cx, lm.cz, 43, 24, mallYaw);
+        break;
+      }
+      case 'cobreloa': {
+        obj = createCobreloa3D(THREE);
+        obj.position.set(lm.cx, 0, lm.cz);
+        const cobYaw = -(lm.angle || 0);
+        obj.rotation.y = cobYaw;
+        colliderPoly = makeRectCollider(lm.cx, lm.cz, 9, 7, cobYaw);
         break;
       }
       case 'terminal': {

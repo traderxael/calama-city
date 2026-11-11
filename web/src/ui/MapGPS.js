@@ -327,13 +327,28 @@ export class MapGPSController {
 
     const halfW = (width * 0.55) * mpp;
     const halfH = (height * 0.55) * mpp;
-    const inBounds = (x, z) => Math.abs(x - cx) <= halfW + 120 && Math.abs(z - cz) <= halfH + 120;
+    const minVX = cx - halfW - 60;
+    const maxVX = cx + halfW + 60;
+    const minVZ = cz - halfH - 60;
+    const maxVZ = cz + halfH + 60;
+    const inBounds = (x, z) => x >= minVX && x <= maxVX && z >= minVZ && z <= maxVZ;
+    const polyInView = (pts) => {
+      let x0 = Infinity, z0 = Infinity, x1 = -Infinity, z1 = -Infinity;
+      for (let i = 0; i < pts.length; i += 2) {
+        const px = pts[i], pz = pts[i + 1];
+        if (px < x0) x0 = px;
+        if (px > x1) x1 = px;
+        if (pz < z0) z0 = pz;
+        if (pz > z1) z1 = pz;
+      }
+      return x1 >= minVX && x0 <= maxVX && z1 >= minVZ && z0 <= maxVZ;
+    };
 
     // Parques y plazas
     ctx.fillStyle = 'rgba(66, 122, 62, 0.55)';
     for (const pk of this.mapData.parks || []) {
       const p = pk.p;
-      if (!p || p.length < 6 || !inBounds(p[0], p[1])) continue;
+      if (!p || p.length < 6 || !polyInView(p)) continue;
       ctx.beginPath();
       for (let i = 0; i < p.length; i += 2) {
         const [sx, sy] = toScreen(p[i], p[i + 1]);
@@ -346,7 +361,7 @@ export class MapGPSController {
     ctx.fillStyle = 'rgba(218, 198, 162, 0.65)';
     for (const pl of this.mapData.plazas || []) {
       const p = pl.p;
-      if (!p || p.length < 6 || !inBounds(p[0], p[1])) continue;
+      if (!p || p.length < 6 || !polyInView(p)) continue;
       ctx.beginPath();
       for (let i = 0; i < p.length; i += 2) {
         const [sx, sy] = toScreen(p[i], p[i + 1]);
@@ -361,7 +376,7 @@ export class MapGPSController {
     ctx.lineCap = 'round';
     for (const wl of this.mapData.waterLines || []) {
       const p = wl.p;
-      if (!p || p.length < 4) continue;
+      if (!p || p.length < 4 || !polyInView(p)) continue;
       ctx.lineWidth = Math.max(2, (wl.w || 10) / mpp);
       ctx.beginPath();
       for (let i = 0; i < p.length; i += 2) {
@@ -375,7 +390,7 @@ export class MapGPSController {
     if (showBuildings) {
       for (const b of this.mapData.buildings || []) {
         const p = b.p;
-        if (!p || p.length < 6 || !inBounds(p[0], p[1])) continue;
+        if (!p || p.length < 6 || !polyInView(p)) continue;
         ctx.fillStyle = b.r === 1 ? 'rgba(210, 168, 128, 0.48)' : 'rgba(130, 140, 152, 0.28)';
         ctx.beginPath();
         for (let i = 0; i < p.length; i += 2) {
@@ -390,7 +405,7 @@ export class MapGPSController {
     // Red vial por jerarquía
     for (const rd of this.mapData.roads || []) {
       const p = rd.p;
-      if (!p || p.length < 4 || !inBounds(p[0], p[1])) continue;
+      if (!p || p.length < 4 || !polyInView(p)) continue;
       const isMain = rd.t === 'primary' || rd.t === 'trunk' || rd.t === 'motorway' || rd.t === 'secondary';
       const isPed = rd.t === 'pedestrian';
       if (mpp > 5.5 && !isMain && rd.t !== 'tertiary') continue;
