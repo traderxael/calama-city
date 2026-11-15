@@ -522,6 +522,184 @@ export function createCobreloa3D(THREE) {
   return g;
 }
 
+/**
+ * 9. Hospital del Cobre Salvador Allende Gossens (centro de salud laboral de Chuquicamata)
+ *    Volumen horizontal de baja altura con bloques conectados, marquesina y helipuerto.
+ */
+export function createHospitalDelCobre3D(THREE) {
+  const g = new THREE.Group();
+  g.name = 'HospitalDelCobreSalvadorAllende';
+
+  const mWall = new THREE.MeshLambertMaterial({ color: 0xe8e2d6 });
+  const mBand = new THREE.MeshLambertMaterial({ color: 0x2f7ea8 });
+  const mGlass = new THREE.MeshLambertMaterial({ color: 0x274b60 });
+  const mRoof = new THREE.MeshLambertMaterial({ color: 0x9aa0a6 });
+  const mCanopy = new THREE.MeshLambertMaterial({ color: 0xd8dde2 });
+  const mGreen = new THREE.MeshLambertMaterial({ color: 0x3f7835 });
+  const mPath = new THREE.MeshLambertMaterial({ color: 0xcfc7b8 });
+
+  g.add(box(THREE, 120, 0.3, 90, mPath, 0, 0.15, 0));
+
+  // Pabellón principal de hospitalización
+  g.add(box(THREE, 78, 15.5, 30, mWall, 0, 7.75, -8));
+  g.add(box(THREE, 79, 1.5, 31, mBand, 0, 12.4, -8));
+  g.add(box(THREE, 80, 0.7, 32, mRoof, 0, 15.8, -8));
+  for (const wy of [3.4, 6.6, 9.8]) {
+    g.add(box(THREE, 76, 1.7, 0.5, mGlass, 0, wy, 7.1));
+  }
+
+  // Bloque de consultas / policlínico (ala Este)
+  g.add(box(THREE, 30, 8.2, 34, mWall, 50, 4.1, 4));
+  g.add(box(THREE, 31, 0.6, 35, mBand, 50, 8.4, 4));
+  g.add(box(THREE, 31, 0.5, 35, mRoof, 50, 8.7, 4));
+  g.add(box(THREE, 0.5, 1.6, 30, mGlass, 65.1, 5.0, 4));
+
+  // Ala de urgencia (al Oeste)
+  g.add(box(THREE, 26, 6.4, 30, mWall, -50, 3.2, 2));
+  g.add(box(THREE, 27, 0.8, 31, mCanopy, -50, 6.7, 2));
+  g.add(box(THREE, 3.4, 4.6, 0.6, mGlass, -50, 2.3, 17.2));
+
+  // Marquesina de acceso principal
+  g.add(box(THREE, 24, 0.7, 12, mCanopy, 0, 5.6, 13));
+  for (const px of [-9, -3, 3, 9]) {
+    g.add(cyl(THREE, 0.28, 0.32, 5.4, 8, mCanopy, px, 2.7, 17));
+  }
+
+  // Helipuerto con H
+  g.add(cyl(THREE, 7.5, 7.5, 0.5, 16, mRoof, 26, 16.2, -8));
+  const hMat = new THREE.MeshBasicMaterial({ color: 0xf2f2f2 });
+  g.add(box(THREE, 1.1, 0.12, 5.2, hMat, 24.2, 16.5, -8));
+  g.add(box(THREE, 1.1, 0.12, 5.2, hMat, 27.8, 16.5, -8));
+  g.add(box(THREE, 3.6, 0.12, 1.1, hMat, 26, 16.5, -8));
+
+  // Áreas verdes perimetrales
+  for (const [tx, tz] of [[-42, 26], [-30, 30], [42, 28], [56, 30], [-56, -22], [60, -18]]) {
+    g.add(cyl(THREE, 0.22, 0.3, 2.4, 6, mGreen, tx, 1.2, tz));
+    const crown = new THREE.Mesh(new THREE.DodecahedronGeometry(1.9, 0), mGreen);
+    crown.position.set(tx, 3.4, tz);
+    g.add(crown);
+  }
+
+  return g;
+}
+
+/**
+ * 10. Colegio Chuquicamata (gran campus educacional al oriente de Calama)
+ *     Pabellones de clases en módulos de 2 pisos, patio central, gimnasio y multicancha.
+ */
+export function createColegioChuquicamata3D(THREE) {
+  const g = new THREE.Group();
+  g.name = 'ColegioChuquicamata';
+
+  const mWall = new THREE.MeshLambertMaterial({ color: 0xf0e9da });
+  const mTrim = new THREE.MeshLambertMaterial({ color: 0xb0552f });
+  const mGlass = new THREE.MeshLambertMaterial({ color: 0x35566b });
+  const mRoof = new THREE.MeshLambertMaterial({ color: 0x8d949c });
+  const mPatio = new THREE.MeshLambertMaterial({ color: 0xd6cdbb });
+  const mGreen = new THREE.MeshLambertMaterial({ color: 0x3f7835 });
+  const mCourt = new THREE.MeshLambertMaterial({ color: 0x2f6f9e });
+  const mLine = new THREE.MeshBasicMaterial({ color: 0xf4f4f4 });
+
+  g.add(box(THREE, 190, 0.25, 120, mPatio, 0, 0.13, 0));
+
+  // Pabellones en U alrededor del patio
+  const pavilions = [
+    { x: 0, z: -58, w: 170, d: 14 },
+    { x: 0, z: 58, w: 170, d: 14 },
+    { x: -80, z: 0, w: 14, d: 100 },
+    { x: 80, z: 0, w: 14, d: 100 },
+  ];
+  for (const p of pavilions) {
+    g.add(box(THREE, p.w, 7.6, p.d, mWall, p.x, 3.8, p.z));
+    g.add(box(THREE, p.w + 0.6, 0.8, p.d + 0.6, mTrim, p.x, 7.9, p.z));
+    g.add(box(THREE, p.w + 1.2, 0.4, p.d + 1.2, mRoof, p.x, 8.4, p.z));
+    const along = Math.max(p.w, p.d);
+    const horiz = p.w >= p.d;
+    for (const wy of [2.6, 5.6]) {
+      if (horiz) {
+        g.add(box(THREE, along - 8, 1.5, 0.4, mGlass, p.x, wy, p.z + (p.d / 2) * (p.z >= 0 ? -1 : 1)));
+      } else {
+        g.add(box(THREE, 0.4, 1.5, along - 8, mGlass, p.x + (p.w / 2) * (p.x >= 0 ? -1 : 1), wy, p.z));
+      }
+    }
+  }
+
+  // Gimnasio techado
+  g.add(box(THREE, 34, 10.5, 24, mWall, 118, 5.25, -34));
+  g.add(box(THREE, 36, 1.0, 26, mTrim, 118, 11.0, -34));
+  g.add(box(THREE, 36.5, 0.6, 26.5, mRoof, 118, 11.6, -34));
+
+  // Multicancha con demarcación
+  g.add(box(THREE, 32, 0.14, 19, mCourt, -116, 0.2, 34));
+  g.add(box(THREE, 30, 0.16, 0.25, mLine, -116, 0.24, 34));
+  g.add(box(THREE, 0.25, 0.16, 17, mLine, -116, 0.24, 34));
+  const hoop = new THREE.Mesh(new THREE.TorusGeometry(0.45, 0.07, 6, 12), new THREE.MeshLambertMaterial({ color: 0xd8622a }));
+  hoop.position.set(-128, 3.4, 34);
+  hoop.rotation.y = Math.PI * 0.5;
+  g.add(hoop);
+
+  // Áreas verdes
+  for (const [tx, tz] of [[-60, -40], [60, -40], [-60, 40], [60, 40], [0, 0], [-100, 0], [100, 0]]) {
+    g.add(cyl(THREE, 0.24, 0.32, 2.6, 6, mGreen, tx, 1.3, tz));
+    const crown = new THREE.Mesh(new THREE.DodecahedronGeometry(2.1, 0), mGreen);
+    crown.position.set(tx, 3.8, tz);
+    g.add(crown);
+  }
+
+  return g;
+}
+
+/**
+ * 11. Clínica Mutual de Seguridad de Calama (recinto privado de salud ocupacional)
+ *     Edificio compacto de 5 pisos con auditorio y acceso peatonal.
+ */
+export function createClinicaMutual3D(THREE) {
+  const g = new THREE.Group();
+  g.name = 'ClinicaMutualDeSeguridad';
+
+  const mWall = new THREE.MeshLambertMaterial({ color: 0xeae4d8 });
+  const mGlass = new THREE.MeshLambertMaterial({ color: 0x2c4f66 });
+  const mTrim = new THREE.MeshLambertMaterial({ color: 0x2f7ea8 });
+  const mRoof = new THREE.MeshLambertMaterial({ color: 0x9aa0a6 });
+  const mBase = new THREE.MeshLambertMaterial({ color: 0x4a4f55 });
+  const mGreen = new THREE.MeshLambertMaterial({ color: 0x3f7835 });
+  const mPath = new THREE.MeshLambertMaterial({ color: 0xcfc7b8 });
+
+  g.add(box(THREE, 60, 0.25, 55, mPath, 0, 0.13, 0));
+
+  // Torre principal de 5 pisos
+  g.add(box(THREE, 26, 18.5, 22, mWall, 0, 9.25, 0));
+  g.add(box(THREE, 27, 1.6, 23, mTrim, 0, 1.0, 0));
+  g.add(box(THREE, 27, 0.9, 23, mTrim, 0, 18.9, 0));
+  g.add(box(THREE, 27.5, 0.5, 23.5, mRoof, 0, 19.4, 0));
+  for (const wy of [3.4, 6.6, 9.8, 13.0, 16.2]) {
+    g.add(box(THREE, 26.2, 1.6, 22.2, mGlass, 0, wy, 0));
+  }
+
+  // Volumen bajo de auditorio / rehabilitación
+  g.add(box(THREE, 24, 6.5, 18, mWall, 24, 3.25, 6));
+  g.add(box(THREE, 25, 0.7, 19, mTrim, 24, 6.8, 6));
+  g.add(box(THREE, 25, 0.4, 19, mRoof, 24, 7.2, 6));
+  g.add(box(THREE, 0.4, 1.5, 14, mGlass, 36.1, 4.4, 6));
+
+  // Acceso principal con marquesina y rampa
+  g.add(box(THREE, 14, 0.6, 8, mRoof, 0, 5.4, 14));
+  for (const px of [-5, 5]) {
+    g.add(cyl(THREE, 0.24, 0.28, 5.2, 8, mRoof, px, 2.6, 17));
+  }
+  g.add(box(THREE, 6, 0.3, 10, mBase, 0, 0.15, 13, -0.09, 0, 0));
+
+  // Jardineras perimetrales
+  for (const [tx, tz] of [[-20, 18], [20, 18], [-20, -16], [34, -14], [40, 14]]) {
+    g.add(cyl(THREE, 0.22, 0.3, 2.3, 6, mGreen, tx, 1.15, tz));
+    const crown = new THREE.Mesh(new THREE.DodecahedronGeometry(1.8, 0), mGreen);
+    crown.position.set(tx, 3.2, tz);
+    g.add(crown);
+  }
+
+  return g;
+}
+
 function makeRectCollider(cx, cz, halfW, halfD, yaw = 0) {
   const c = Math.cos(yaw);
   const s = Math.sin(yaw);
@@ -655,6 +833,27 @@ export function buildLandmarks3D(THREE, mapData, colliderGrid = null, gltfLoader
         obj = createDinosaurioLoa3D(THREE);
         obj.position.set(lm.cx, 0, lm.cz);
         colliderPoly = makeRectCollider(lm.cx, lm.cz, 2.8, 4.5, 0);
+        break;
+      }
+      case 'hospital_cobre': {
+        obj = createHospitalDelCobre3D(THREE);
+        obj.position.set(lm.cx, 0, lm.cz);
+        obj.rotation.y = -(lm.angle || 0);
+        colliderPoly = lm.p && lm.p.length >= 6 ? lm.p : makeRectCollider(lm.cx, lm.cz, 60, 45, -(lm.angle || 0));
+        break;
+      }
+      case 'colegio_chuquicamata': {
+        obj = createColegioChuquicamata3D(THREE);
+        obj.position.set(lm.cx, 0, lm.cz);
+        obj.rotation.y = -(lm.angle || 0);
+        colliderPoly = lm.p && lm.p.length >= 6 ? lm.p : makeRectCollider(lm.cx, lm.cz, 95, 60, -(lm.angle || 0));
+        break;
+      }
+      case 'clinica_mutual': {
+        obj = createClinicaMutual3D(THREE);
+        obj.position.set(lm.cx, 0, lm.cz);
+        obj.rotation.y = -(lm.angle || 0);
+        colliderPoly = lm.p && lm.p.length >= 6 ? lm.p : makeRectCollider(lm.cx, lm.cz, 16, 14, -(lm.angle || 0));
         break;
       }
       default:

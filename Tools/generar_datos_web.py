@@ -919,6 +919,39 @@ def build_web_dataset() -> dict:
             if ring:
                 forbidden_polys.append(flatten_pts(ring))
 
+        # Hitos periféricos con modelo 3D a medida (hospitales y campus educacionales reales)
+        hospital_el_cobre = (
+            "hospital del cobre" in lname
+            or ("salvador allende" in lname and tags.get("amenity") == "hospital")
+            or wid == "144767434"
+        )
+        clinica_mutual = "mutual de seguridad" in lname or wid == "1064005150"
+        colegio_chuqui = "colegio chuquicamata" in lname or wid == "144827162"
+
+        if hospital_el_cobre or clinica_mutual or colegio_chuqui:
+            ring = clean_ring(pts, ccw=True)
+            if ring:
+                flat = flatten_pts(ring)
+                cx, cz = poly_centroid(ring)
+                if hospital_el_cobre:
+                    kind, nm, hgt = "hospital_cobre", "Hospital del Cobre Salvador Allende Gossens", 17.0
+                elif clinica_mutual:
+                    kind, nm, hgt = "clinica_mutual", "Clínica Mutual de Seguridad de Calama", 20.0
+                else:
+                    kind, nm, hgt = "colegio_chuquicamata", "Colegio Chuquicamata", 12.0
+                landmarks.append({
+                    "id": f"way_{wid}",
+                    "kind": kind,
+                    "name": nm,
+                    "cx": cx,
+                    "cz": cz,
+                    "angle": dominant_angle(ring),
+                    "h": hgt,
+                    "p": flat,
+                })
+                forbidden_polys.append(flat)
+            continue
+
     # Registrar Paseo Peatonal Eleuterio Ramírez como hito
     if paseo_ramirez_pts:
         cx = round(sum(p[0] for p in paseo_ramirez_pts) / len(paseo_ramirez_pts), 1)
