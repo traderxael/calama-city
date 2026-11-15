@@ -317,8 +317,8 @@ def generate_urban_infill(
     Genera edificaciones realistas en las cuadras donde OSM no tiene polígonos de edificios,
     garantizando cero invasión de calles, veredas, plazas, parques, Río Loa y vía férrea.
     """
-    min_x, max_x = -2300.0, 2100.0
-    min_z, max_z = -2100.0, 2100.0
+    min_x, max_x = -3400.0, 3000.0
+    min_z, max_z = -3200.0, 3200.0
     scale = 1.0  # 1 píxel = 1 metro
     w_px = int((max_x - min_x) * scale) + 1
     h_px = int((max_z - min_z) * scale) + 1
@@ -434,9 +434,17 @@ def generate_urban_infill(
         rw = rd["w"]
         sname = (rd["n"] or "").lower()
         dist_center = math.hypot(pts[0], pts[1])
-        # Limitar el relleno al casco consolidado de Calama para peso JSON óptimo y realismo
-        if dist_center > 1950.0:
+        # Limitar el relleno al casco consolidado de Calama (~3.3 km) con densidad decreciente
+        if dist_center > 3300.0:
             continue
+
+        # Densidad de relleno: 100% en el casco histórico, atenuada en la periferia consolidada
+        if dist_center < 1950.0:
+            density = 1.0
+        elif dist_center < 2600.0:
+            density = 0.78
+        else:
+            density = 0.55
 
         is_commercial_axis = (
             htype in ("pedestrian", "primary", "secondary")
@@ -456,6 +464,10 @@ def generate_urban_infill(
             for side in (-1.0, 1.0):
                 cursor = 4.5
                 while cursor + 9.0 < seg_len - 4.0:
+                    # Saltar lotes según la densidad del anillo para no poblar el desierto
+                    if density < 1.0 and rng.random() > density:
+                        cursor += rng.uniform(6.0, 11.0)
+                        continue
                     lot_w = round(rng.uniform(8.5, 13.5) if is_commercial_axis else rng.uniform(7.8, 11.8), 1)
                     if cursor + lot_w > seg_len - 3.5:
                         break
@@ -966,6 +978,36 @@ def build_web_dataset() -> dict:
                         "p": [round(x - 4, 1), round(z - 4, 1), round(x + 4, 1), round(z - 4, 1),
                               round(x + 4, 1), round(z + 4, 1), round(x - 4, 1), round(z + 4, 1)],
                     })
+
+    # 3b. POIs definidos como ways (colegios, hospitales, terminales, supermercados, etc.)
+    #      que antes se perdían porque el bucle anterior solo recorría nodos.
+    for wid, pts in ways_pts.items():
+        wtags = ways_tags.get(wid, {})
+        wname = (wtags.get("name") or "").strip()
+        if not wname:
+            continue
+        wcat = (
+            wtags.get("amenity")
+            or wtags.get("shop")
+            or wtags.get("tourism")
+            or wtags.get("historic")
+            or wtags.get("leisure")
+            or wtags.get("office")
+        )
+        if not wcat:
+            continue
+        # Evitar duplicar hitos que ya tienen modelo 3D propio o ya fueron registrados
+        if wcat in ("park", "garden", "pitch", "playground", "sports_centre", "water_park", "stadium", "recreation_ground"):
+            continue
+        cx, cz = poly_centroid(pts)
+        if math.hypot(cx, cz) > 3300.0:
+            continue
+        pois.append({
+            "n": wname,
+            "c": wcat,
+            "x": round(cx, 1),
+            "z": round(cz, 1),
+        })
 
     # 4. Construir grafo vial conectado partiendo ways en nodos compartidos (intersecciones reales)
     ref_counts: dict[str, int] = defaultdict(int)
